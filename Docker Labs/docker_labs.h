@@ -4,5 +4,19 @@
 #pragma once
 
 #include <iostream>
+using namespace std;
+namespace Docker_Labs {
+	class User {
+		std::string email;
+		std::string cf_uid;
+	};
+	class Container {
+		std::string docker_id;
+		std::string name;
+		std::string image;
+		std::string ip_addr;
+		std::string net_id;
+	};
+}
 
 // TODO: Reference additional headers your program requires here.
