@@ -5,12 +5,13 @@
 
 #include <iostream>
 using namespace std;
+
 namespace Docker_Labs {
-	class User {
+	struct User {
 		std::string email;
 		std::string cf_uid;
 	};
-	class Container {
+	struct Container {
 		std::string docker_id;
 		std::string name;
 		std::string image;

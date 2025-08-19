@@ -1,4 +1,4 @@
-#include "docker_labs.h";
+#include "main.h";
 
 namespace Docker_Labs::Cloudflared {
 	// Seats
