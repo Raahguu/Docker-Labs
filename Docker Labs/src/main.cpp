@@ -13,16 +13,7 @@ int main(int argc, char* argv[])
     using namespace std::literals;
     using namespace Docker_Labs;
 
-    std::cout << "anything" << std::endl;
-
-    int ora = 3;
-    char* orb[] = {
-        const_cast<char*>("./labs-cli"),
-        const_cast<char*>("cloudflare"),
-        const_cast<char*>("test_ingress"),
-    };
-
-    Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(ora, orb);
+    Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(argc, argv);
     
     if (command.Get_Partition() == "cloudflare"sv) {
 
@@ -90,12 +81,14 @@ int main(int argc, char* argv[])
         }
     }
     
+    // Use this section for all docker commands
+    // e.g. ./labs-cli docker <command> [<subcommand>]
     if (command.Get_Partition() == "docker"sv) {
-        User user;
+        /*User user;
         user.email = "rl";
         std::string image = "alpine";
         Docker_Labs::Docker::Create(user, image);
-        return 0;
+        return 0;*/
     }
 
 }
@@ -107,7 +100,7 @@ namespace Docker_Labs {
     Command_Interpreter::Command_Interpreter(int argc, char* argv[]) {
 
         if (argc < 2) {
-            std::cerr << "Usage: " << argv[0] << " <command> [subcommand] [sub_subcommand] [flags...]\n";
+            std::cerr << "Usage: labs-cli <partition> [command] [subcommand]\n";
             
         }
         else {
@@ -127,27 +120,6 @@ namespace Docker_Labs {
                 subcommand = argv[index];
                 ++index;
             }
-
-            // Collect flags
-            for (; index < argc; ++index) {
-                std::string arg = argv[index];
-                if (arg.rfind("-", 0) == 0) { // starts with '-' or '--'
-                    flags.push_back(arg);
-                }
-                else {
-                    std::cerr << "Unexpected argument: " << arg << "\n";
-                }
-            }
-
-            // Output parsed values
-            //std::cout << "Command: " << partition << "\n";
-            //if (!command.empty()) std::cout << "Subcommand: " << command << "\n";
-            //if (!subcommand.empty()) std::cout << "Sub-subcommand: " << subcommand << "\n";
-
-            //std::cout << "Flags:\n";
-            //for (const auto& f : flags) {
-            //    std::cout << "  " << f << "\n";
-            //}
         }
     }
 

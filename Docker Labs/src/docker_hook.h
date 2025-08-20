@@ -12,5 +12,5 @@ namespace Docker_Labs::Docker {
 	int Get_Image(Container container);
 	int Get_Status(Container container);
 	int Get_Owner(Container container);
-	int Reset(Container container);
+	int Reset(Container container);*/
 }
