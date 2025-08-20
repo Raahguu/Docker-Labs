@@ -1,7 +1,7 @@
 ﻿// Docker Labs.cpp : Defines the entry point for the application.
 //
 
-#include "docker_labs.h"
+#include "main.h"
 #include "cloudflare_hook.h"
 #include "labs_user.h"
 #include <iostream>
@@ -89,7 +89,15 @@ int main(int argc, char* argv[])
             cloudflared.Create_Ingress(container);
         }
     }
-   
+    
+    if (command.Get_Partition() == "docker"sv) {
+        User user;
+        user.email = "rl";
+        std::string image = "alpine";
+        Docker_Labs::Docker::Create(user, image);
+        return 0;
+    }
+
 }
 
 

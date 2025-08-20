@@ -1,5 +1,4 @@
-#include "docker_labs.h"
-
+#include "main.h"
 namespace Docker_Labs::Docker {
 	/*Container Create(User user, std::string image_name);
 	Container Create(User user, std::string image_name, std::string container_name);
@@ -13,5 +12,5 @@ namespace Docker_Labs::Docker {
 	int Get_Image(Container container);
 	int Get_Status(Container container);
 	int Get_Owner(Container container);
-	int Reset(Container container);*/
+	int Reset(Container container);
 }
