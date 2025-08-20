@@ -4,6 +4,7 @@
 #pragma once
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
 namespace Docker_Labs {
@@ -12,11 +13,11 @@ namespace Docker_Labs {
 		std::string cf_uid;
 	};
 	struct Container {
-		std::string docker_id;
+		std::string id;
 		std::string name;
 		std::string image;
-		std::string ip_addr;
-		std::string net_id;
+		std::string ip;
+		std::string network_id;
 	};
 }
 

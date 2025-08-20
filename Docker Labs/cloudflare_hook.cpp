@@ -5,7 +5,7 @@
 #include "cloudflare_hook.h"
 using namespace std;
 namespace Docker_Labs::Cloudflared {
-	int Docker_Labs::Cloudflared::Revoke_Seat(User user)
+	int Revoke_Seat(User user)
 	{
 		return 0;
 	}
@@ -13,7 +13,7 @@ namespace Docker_Labs::Cloudflared {
 	{
 		return 0;
 	}
-}e
+}
 
 namespace Docker_Labs::Cloudflare_Hook {
 	class API_Auth {

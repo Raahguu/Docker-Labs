@@ -2,11 +2,24 @@
 # project specific logic here.
 #
 
-# Add source to this project's executable.
-add_executable (CMakeTarget "main.cpp" "main.h" "cloudflare_hook.cpp" "cloudflare_hook.h" "docker_hook.cpp" "docker_hook.h")
+cmake_minimum_required(VERSION 3.12)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET CMakeTarget PROPERTY CXX_STANDARD 20)
-endif()
+project(DockerLabs)
+
+find_package(CURL REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
+# Add source to this project's executable.
+add_executable (CMakeTarget 
+	main.cpp
+	main.h
+	cloudflare_hook.cpp
+	cloudflare_hook.h
+	docker_hook.cpp
+	docker_hook.h
+)
+
+set_property(TARGET CMakeTarget PROPERTY CXX_STANDARD 20)
 
 # TODO: Add tests and install targets if needed.
+target_link_libraries(CMakeTarget PRIVATE CURL::libcurl nlohmann_json::nlohmann_json)

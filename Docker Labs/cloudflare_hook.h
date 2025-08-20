@@ -1,4 +1,4 @@
-#include "main.h";
+#include "main.h"
 
 namespace Docker_Labs::Cloudflared {
 	// Seats
@@ -12,8 +12,8 @@ namespace Docker_Labs::Cloudflared {
 	// Policy
 	int Grant_Container(Container container, User user);
 	int Revoke_Container(Container container, User user);
-	int* Get_Members(Container container);
-	int* Get_Authorised_Containers(User user);
+	std::vector<User> Get_Members(Container container);
+	std::vector<Container> Get_Authorised_Containers(User user);
 	// Global
 	int Create(User user);
 	int Delete(Container container);

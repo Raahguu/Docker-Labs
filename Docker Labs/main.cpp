@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "docker_hook.h"
+#include "cloudflare_hook.h"
 
 using namespace std;
 using namespace Docker_Labs;
