@@ -3,7 +3,11 @@
 #
 cmake_minimum_required (VERSION 3.10)
 # Add source to this project's executable.
-add_executable (labs-cli "docker_labs.cpp" "docker_labs.h" "cloudflare_hook.cpp" "cloudflare_hook.h" "docker_hook.cpp" "docker_hook.h" "curl_wrapper.cpp" "curl_wrapper.h")
+
+file(GLOB SOURCES "src/*.cpp")
+
+#add_executable (labs-cli "docker_labs.cpp" "docker_labs.h" "cloudflare_hook.cpp" "cloudflare_hook.h" "docker_hook.cpp" "docker_hook.h" "curl_wrapper.cpp" "curl_wrapper.h")
+add_executable (labs-cli ${SOURCES})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET labs-cli PROPERTY CXX_STANDARD 20)

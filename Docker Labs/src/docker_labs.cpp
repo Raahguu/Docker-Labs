@@ -3,6 +3,7 @@
 
 #include "docker_labs.h"
 #include "cloudflare_hook.h"
+#include "labs_user.h"
 #include <iostream>
 #include <string_view>
 
@@ -12,7 +13,16 @@ int main(int argc, char* argv[])
     using namespace std::literals;
     using namespace Docker_Labs;
 
-    Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(argc, argv);
+    std::cout << "anything" << std::endl;
+
+    int ora = 3;
+    char* orb[] = {
+        const_cast<char*>("./labs-cli"),
+        const_cast<char*>("cloudflare"),
+        const_cast<char*>("test_ingress"),
+    };
+
+    Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(ora, orb);
     
     if (command.Get_Partition() == "cloudflare"sv) {
 
@@ -35,12 +45,51 @@ int main(int argc, char* argv[])
 
         if (command.Get_Command() == "test-api"sv)
         {
-            std::cout << "Sending Reqest..." << std::endl;
-            std::cout << Docker_Labs::Cloudflare::Test_API(cf_auth) << std::endl;
+            int responce_code = Docker_Labs::Cloudflare::Test_API(cf_auth);
+            switch (responce_code)
+            {
+            case 0:
+                std::cout << "Pass" << std::endl;
+                return 0;
+            case 2:
+                std::cout << "Authorization Failure" << std::endl;
+                return 1;
+            case 3:
+                std::cout << "Connection Failure" << std::endl;
+                return 1;
+            default:
+                std::cout << "Unknown Failure" << std::endl;
+                return 1;
+
+            }
+        }
+        else if (command.Get_Command() == "get-seats"sv) {
+            std::vector<Docker_Labs::User> users = Docker_Labs::Cloudflare::Get_Seats(cf_auth);
+            for (Docker_Labs::User user : users) {
+                std::cout << user.Get_Email() << " " << user.Get_CF_UID() << std::endl;
+            }
+        }
+        else if (command.Get_Command() == "fetch-ingress"sv) {
+            json responce_body = Docker_Labs::Cloudflare::Fetch_Ingress(cf_auth);
+            if (not responce_body["success"]) {
+                std::cout << "Failed to fetch configuration." << std::endl;
+                return 1;
+            }
+            json ingress_conf = responce_body["result"]["config"]["ingress"];
+            ingress_conf.erase(ingress_conf.end() - 1);
+
+            for (const json domain : ingress_conf) {
+                std::cout << "Hostname: " << domain["hostname"] << std::endl;
+                std::cout << "Service: " << domain["service"] << std::endl << std::endl;
+            }
+        }
+        else if (command.Get_Command() == "test_ingress") {
+            Container container = Container("docker_id", "test_container_domain_com_e2d", "image", "127.0.0.1", "net_id");
+            Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
+            cloudflared.Create_Ingress(container);
         }
     }
    
-    return 0;
 }
 
 
@@ -113,5 +162,7 @@ namespace Docker_Labs {
     {
         return flags;
     }
+
+
 
 }

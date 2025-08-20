@@ -6,21 +6,6 @@
 #include <vector>
 
 namespace Docker_Labs {
-	class User {
-		User();
-		~User();
-		/*std::string email;
-		std::string cf_uid;*/
-	};
-	class Container {
-		Container();
-		~Container();
-		/*std::string docker_id;
-		std::string name;
-		std::string image;
-		std::string ip_addr;
-		std::string net_id;*/
-	};
 	class Command_Interpreter {
 	public:
 		Command_Interpreter(int argc, char* argv[]);
