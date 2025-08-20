@@ -2,21 +2,40 @@
 // or project specific include files.
 
 #pragma once
+#include <string>
+#include <vector>
 
-#include <iostream>
-using namespace std;
 namespace Docker_Labs {
 	class User {
-		std::string email;
-		std::string cf_uid;
+		User();
+		~User();
+		/*std::string email;
+		std::string cf_uid;*/
 	};
 	class Container {
-		std::string docker_id;
+		Container();
+		~Container();
+		/*std::string docker_id;
 		std::string name;
 		std::string image;
 		std::string ip_addr;
-		std::string net_id;
+		std::string net_id;*/
 	};
+	class Command_Interpreter {
+	public:
+		Command_Interpreter(int argc, char* argv[]);
+		std::string Get_Partition();
+		std::string Get_Command();
+		std::string Get_SubCommand();
+		std::vector<std::string> Get_Flags();
+
+	private:
+		std::string partition;
+		std::string command;
+		std::string subcommand;
+		std::vector<std::string> flags;
+	};
+
 }
 
 // TODO: Reference additional headers your program requires here.
