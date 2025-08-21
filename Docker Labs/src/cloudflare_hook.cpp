@@ -1,5 +1,6 @@
 #include "cloudflare_hook.h"
 #include <iostream>
+#include <unistd.h>
 
 using json = nlohmann::json;
 
@@ -69,7 +70,7 @@ std::vector<User> Docker_Labs::Cloudflare::Cloudflared::Get_Seats()
 
 	return users;
 }
-json Docker_Labs::Cloudflare::Cloudflared::Fetch_Ingress() {
+	json Docker_Labs::Cloudflare::Cloudflared::Fetch_Ingress() {
 	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.account_id + "/cfd_tunnel/"+auth.tunnel_id+"/configurations";
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.API_token
@@ -115,8 +116,8 @@ int Docker_Labs::Cloudflare::Cloudflared::Create_Ingress(Container container)
 		"Authorization: Bearer " + auth.API_token
 	};
 
-	//std::string data = Generate_Add_Ingress_Message(container);
-	std::string data = "{\"config\":{\"ingress\":[{\"hostname\":\"l2l-test4a_cassa.endpoints.live\",\"originRequest\":{},\"service\":\"ssh://127.0.0.1:22\"},{\"hostname\":\"v1-laith_striegher-cassa_au.endpoints.live\",\"options\":{\"require_authenticated_jwt\":true},\"service\":\"ssh://172.17.0.2:22\"},{\"hostname\":\"test_container_domain_com_e2d.labs.endpoints.live\",\"service\":\"ssh://127.0.0.1:22\"},{\"service\":\"http_status:404\"}]}}";
+	std::string data = Generate_Add_Ingress_Message(container);
+	//std::string data = "{\"config\":{\"ingress\":[{\"hostname\":\"l2l-test4a_cassa.endpoints.live\",\"originRequest\":{},\"service\":\"ssh://127.0.0.1:22\"},{\"hostname\":\"v1-laith_striegher-cassa_au.endpoints.live\",\"options\":{\"require_authenticated_jwt\":true},\"service\":\"ssh://172.17.0.2:22\"},{\"hostname\":\"test_container_domain_com_e2d.labs.endpoints.live\",\"service\":\"ssh://127.0.0.1:22\"},{\"service\":\"http_status:404\"}]}}";
 	std::cout << data << std::endl;
 	std::string responce = curl.Put(url, data, headers);
 	std::cout << responce << std::endl;
