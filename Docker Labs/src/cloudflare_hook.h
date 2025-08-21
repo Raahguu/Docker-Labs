@@ -61,5 +61,4 @@ namespace Docker_Labs::Cloudflare {
 	std::vector<User> Get_Seats(const API_Auth& auth);
 
 	json Fetch_Ingress(const API_Auth& auth);
-
 }

@@ -9,31 +9,34 @@ Curl_Wrapper::Curl_Wrapper()
 
 Curl_Wrapper::~Curl_Wrapper()
 {
-	curl_easy_cleanup(curl);
 }
 
-size_t Curl_Wrapper::WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
+std::size_t Curl_Wrapper::WriteCallback(char* contents, std::size_t size, std::size_t nmemb, std::string* userp) {
 	std::string* response = static_cast<std::string*>(userp);
 	response->append(static_cast<char*>(contents), size * nmemb);
 	return size * nmemb;
 }
 
 
-std::string Curl_Wrapper::Get(const std::string& url, const std::vector<std::string>& headers)
+std::string Curl_Wrapper::Get(const std::string& url, std::vector<std::string>& headers)
 {
+	curl_easy_reset(curl);
+
 	if (curl) {
 
-		std::string url = url;
-		std::vector<std::string> headers = headers;
-		
 		struct curl_slist* chunk = NULL;
 		std::string responce;
 
-		for (const std::string& header : headers) {
+		std::string request_type = "GET";
+
+		for (std::string& header : headers) {
 			chunk = curl_slist_append(chunk, header.c_str());
 		}
+
+
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, request_type.c_str());
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responce);
 		curl_easy_setopt(curl, CURLOPT_CA_CACHE_TIMEOUT, 604800L);
@@ -49,6 +52,7 @@ std::string Curl_Wrapper::Get(const std::string& url, const std::vector<std::str
 		if (res != CURLE_OK) {
 			throw "a tantrum";
 		}
+		curl_easy_cleanup(curl);
 
 		return responce;
 	}
@@ -57,15 +61,13 @@ std::string Curl_Wrapper::Get(const std::string& url, const std::vector<std::str
 
 std::string Curl_Wrapper::Put(const std::string& url, const std::string& data, const std::vector<std::string>& headers)
 {
+	curl_easy_reset(curl);
+
 	if (curl) {
-
-		std::string data = "data";
-		std::cout << "Body size: " << data.size();
-
-
 		struct curl_slist* chunk = NULL;
 		std::string responce;
 
+		std::string request_type = "PUT";
 
 		for (const std::string& header : headers) {
 			chunk = curl_slist_append(chunk, header.c_str());
@@ -73,9 +75,8 @@ std::string Curl_Wrapper::Put(const std::string& url, const std::string& data, c
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, request_type.c_str());
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.size()-1);
 
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responce);

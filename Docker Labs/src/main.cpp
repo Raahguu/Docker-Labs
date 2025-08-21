@@ -15,7 +15,8 @@ int main(int argc, char* argv[])
 
     Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(argc, argv);
     
-    if (command.Get_Partition() == "cloudflare"sv) {
+    if (command.Get_Partition() == "cloudflare"sv)
+    {
 
         std::string ACC;
         std::string ZONE;
@@ -37,7 +38,7 @@ int main(int argc, char* argv[])
             DOMN
         );
 
-        if (true)//command.Get_Command() == "test-api"sv)
+        if (command.Get_Command() == "test-api"sv)
         {
             int responce_code = Docker_Labs::Cloudflare::Test_API(cf_auth);
             switch (responce_code)
@@ -63,7 +64,8 @@ int main(int argc, char* argv[])
                 std::cout << user.Get_Email() << " " << user.Get_CF_UID() << std::endl;
             }
         }
-        else if (command.Get_Command() == "fetch-ingress"sv) {
+        else if (command.Get_Command() == "fetch-ingress"sv)
+        {
             json responce_body = Docker_Labs::Cloudflare::Fetch_Ingress(cf_auth);
             if (not responce_body["success"]) {
                 std::cout << "Failed to fetch configuration." << std::endl;
@@ -78,7 +80,7 @@ int main(int argc, char* argv[])
             }
         }
         else if (command.Get_Command() == "test_ingress") {
-            Container container = Container("docker_id", "test_container_domain_com_e2d", "image", "");
+            Container container = Container("docker_id", "laith_striegher_cassa_au_e7i", "image", "127.0.0.1", {"network"});
             Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
             cloudflared.Create_Ingress(container);
         }
@@ -92,7 +94,6 @@ int main(int argc, char* argv[])
         std::string image = "alpine";
         Docker_Labs::Docker::Create(user, image);
         return 0;*/
-        command.Get_Command
     }
 
 }
