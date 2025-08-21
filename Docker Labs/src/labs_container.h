@@ -4,7 +4,7 @@
 namespace Docker_Labs {
 	class Container {
 	public:
-		Container(std::string docker_id, std::string name, std::string image, std::string ip_addr, std::string net_id);
+		Container(std::string docker_id, std::string name, std::string image, std::string ip_addr, std::string networks);
 		std::string Get_Docker_ID();
 		std::string Get_Name();
 		void Set_Name(std::string name);

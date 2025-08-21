@@ -1,7 +1,7 @@
 #include "labs_container.h"
 
 Docker_Labs::Container::Container(std::string docker_id, std::string name, std::string image, std::string ip_addr, std::string net_id)
-	: docker_id(docker_id), name(name), image(image), ip_addr(ip_addr), net_id(net_id)
+	: docker_id(docker_id), name(name), image(image), ip_addr(ip_addr), networks(networks)
 
 {
 }
