@@ -16,6 +16,11 @@ std::string Docker_Labs::Container::Get_Name()
 	return name;
 }
 
+void Docker_Labs::Container::Set_Name(std::string name)
+{
+	this->name = name;
+}
+
 std::string Docker_Labs::Container::Get_Image()
 {
 	return image;
@@ -26,7 +31,7 @@ std::string Docker_Labs::Container::Get_IP_Addr()
 	return ip_addr;
 }
 
-std::string Docker_Labs::Container::Get_Net_ID()
+std::vector<std::string> Docker_Labs::Container::Get_Networks()
 {
-	return net_id;
+	return networks;
 }
