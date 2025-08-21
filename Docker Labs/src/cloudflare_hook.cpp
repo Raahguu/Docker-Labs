@@ -5,12 +5,8 @@ using json = nlohmann::json;
 
 
 // Cloudflare::API_Auth
-Docker_Labs::Cloudflare::API_Auth::API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token)
-	: account_id(account_id), zone_id(zone_id), tunnel_id(tunnel_id), API_token(API_token)
-{
-}
-Docker_Labs::Cloudflare::API_Auth::API_Auth(std::string account_id, std::string API_token)
-	: account_id(account_id), zone_id(""), tunnel_id(""), API_token(API_token)
+Docker_Labs::Cloudflare::API_Auth::API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string Domain)
+	: account_id(account_id), zone_id(zone_id), tunnel_id(tunnel_id), API_token(API_token), domain(Domain)
 {
 }
 
@@ -84,14 +80,7 @@ json Docker_Labs::Cloudflare::Cloudflared::Fetch_Ingress() {
 	return ingress_configuration;
 }
 
-int Docker_Labs::Cloudflare::Cloudflared::Create_Ingress(Container container)
-{
-	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.account_id + \
-		"/cfd_tunnel/" + auth.tunnel_id + "/configurations";
-	std::vector<std::string> headers = {
-		"Content-Type: application/json",
-		"Authorization: Bearer " + auth.API_token
-	};
+std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_Ingress_Message(Container container) {
 	json current_ingress = Fetch_Ingress();
 	json tunnel_conf = current_ingress["result"]["config"];
 	json ingress_conf = tunnel_conf["ingress"];
@@ -105,7 +94,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Create_Ingress(Container container)
 	ingress_conf.erase(ingress_conf.end() - 1);
 
 
-	std::string hostname = container.Get_Name() + ".labs.endpoints.live";
+	std::string hostname = container.Get_Name() + "." + auth.domain;
 	std::string service = "ssh://" + container.Get_IP_Addr() + ":22";
 
 	ingress_rule["hostname"] = hostname;
@@ -115,11 +104,22 @@ int Docker_Labs::Cloudflare::Cloudflared::Create_Ingress(Container container)
 	ingress_conf.push_back(catch_all_rule);
 
 	message_body["config"]["ingress"] = ingress_conf;
+	return message_body.dump();
+};
 
-	std::string data = message_body.dump();
+int Docker_Labs::Cloudflare::Cloudflared::Create_Ingress(Container container)
+{
+	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.account_id + "/cfd_tunnel/" + auth.tunnel_id + "/configurations";
+	std::vector<std::string> headers = {
+		"Content-Type: application/json",
+		"Authorization: Bearer " + auth.API_token
+	};
+
+	//std::string data = Generate_Add_Ingress_Message(container);
+	std::string data = "{\"config\":{\"ingress\":[{\"hostname\":\"l2l-test4a_cassa.endpoints.live\",\"originRequest\":{},\"service\":\"ssh://127.0.0.1:22\"},{\"hostname\":\"v1-laith_striegher-cassa_au.endpoints.live\",\"options\":{\"require_authenticated_jwt\":true},\"service\":\"ssh://172.17.0.2:22\"},{\"hostname\":\"test_container_domain_com_e2d.labs.endpoints.live\",\"service\":\"ssh://127.0.0.1:22\"},{\"service\":\"http_status:404\"}]}}";
 	std::cout << data << std::endl;
-	//std::string responce = curl.Put(url, data, headers);
-
+	std::string responce = curl.Put(url, data, headers);
+	std::cout << responce << std::endl;
 	return 0;
 }
 

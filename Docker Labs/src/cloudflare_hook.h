@@ -16,15 +16,14 @@ namespace Docker_Labs::Cloudflare {
 	class API_Auth {
 			friend class Cloudflared;
 		public:
-			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token);
+			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
 			API_Auth(std::string account_id, std::string API_token);
-			std::string Get_Account();
 		private:
 			const std::string account_id;
 			const std::string zone_id;
 			const std::string tunnel_id;
 			const std::string API_token;
-			
+			const std::string domain;
 		};
 
 	class Cloudflared {
@@ -53,6 +52,8 @@ namespace Docker_Labs::Cloudflare {
 	private:
 		const API_Auth& auth;
 		Curl_Wrapper curl;
+		std::string Generate_Add_Ingress_Message(Container container);
+
 	};
 
 	int Test_API(const API_Auth& auth);

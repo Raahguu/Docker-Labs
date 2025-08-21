@@ -15,23 +15,26 @@ int main(int argc, char* argv[])
 
     Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(argc, argv);
     
-    if (command.Get_Partition() == "cloudflare"sv) {
+    if (true){//command.Get_Partition() == "cloudflare"sv) {
 
         std::string ACC;
         std::string ZONE;
         std::string TUNN;
         std::string TKN;
+        std::string DOMN;
 
         std::cin >> ACC;
         std::cin >> ZONE;
         std::cin >> TUNN;
         std::cin >> TKN;
+        std::cin >> DOMN;
 
         Docker_Labs::Cloudflare::API_Auth cf_auth = Docker_Labs::Cloudflare::API_Auth(
             ACC,
             ZONE,
             TUNN,
-            TKN
+            TKN,
+            DOMN
         );
 
         if (command.Get_Command() == "test-api"sv)
@@ -74,7 +77,7 @@ int main(int argc, char* argv[])
                 std::cout << "Service: " << domain["service"] << std::endl << std::endl;
             }
         }
-        else if (command.Get_Command() == "test_ingress") {
+        else if (true){//command.Get_Command() == "test_ingress") {
             Container container = Container("docker_id", "test_container_domain_com_e2d", "image", "127.0.0.1", "net_id");
             Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
             cloudflared.Create_Ingress(container);
