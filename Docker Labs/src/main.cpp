@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
             }
         }
         else if (command.Get_Command() == "test_ingress") {
-            Container container = Container("docker_id", "laith_striegher_cassa_au_e7i", "image", "127.0.0.1", {"network"});
+            Container container = Container("laith_streigher", "alpine");
             Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
             cloudflared.Create_Ingress(container);
         }
