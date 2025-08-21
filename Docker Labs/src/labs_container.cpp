@@ -160,7 +160,7 @@ namespace Docker_Labs {
 	}
 	
 
-	std::string Container::Get_Owner(){
+	std::string Docker_Labs::Container::Get_Owner(){
 		std::string url = "/containers/" + this->Get_Name() + "/json";
 		json response = Docker_Labs::Docker::CallDockerAPI(url);
 
@@ -217,7 +217,7 @@ namespace Docker_Labs {
 	std::vector<std::string> Container::Get_Networks_Cache() {
 		return networks_cache;
 	};
-	std::string Container::Get_Owner_Cache() {
+	std::string Docker_Labs::Container::Get_Owner_Cache() {
 		return owner_cache;
 	};
 
@@ -227,7 +227,7 @@ namespace Docker_Labs {
 		ip_cache = Get_IP();
 		networks_cache = Get_Networks();
 		owner_cache = Get_Owner();
-
+		return 0;
 	}
 
 	Container Container::Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks, std::string owner)
@@ -449,7 +449,7 @@ std::vector<Docker_Labs::Container> Docker_Labs::Docker::Get_Owned_Containers(st
 	for(const auto& container_json : response["body"]){
 		std::string container_id = container_json["Id"];
 
-		if(Container(container_id).Get_Owner() == email){
+		if (Container(container_id).Get_Owner() == email) {
 			Container container = Container(container_id);
 			owned_Containers.push_back(container);
 		}

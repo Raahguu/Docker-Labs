@@ -8,4 +8,8 @@ namespace Docker_Labs::Cloudflare::Commands {
 	int Get_Seats(API_Auth cf_auth);
 	int Fetch_Ingress(API_Auth cf_auth);
 	int Test_Ingress(API_Auth cf_auth);
+	int Fetch_DNS_Records(API_Auth cf_auth);
+	int Test_DNS(API_Auth cf_auth);
+	int Test_Application(API_Auth cf_auth);
+	int Test_Initial_Policy(API_Auth cf_auth);
 }

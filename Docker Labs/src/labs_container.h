@@ -31,7 +31,6 @@ namespace Docker_Labs {
 			std::string Get_Owner_Cache();
 
 			int Cache_Update();
-
 			static Container Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks, std::string owner);
 
 			//Controls
@@ -42,7 +41,7 @@ namespace Docker_Labs {
 			int Remove();
 			int Set_Owner(std::string email);
 
-		private:
+	private:
 			std::string id;
 			std::string name_cache;
 			std::string image_cache;
