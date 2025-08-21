@@ -96,7 +96,7 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_Ingress_Message(C
 
 
 	std::string hostname = container.Get_Name() + "." + auth.domain;
-	std::string service = "ssh://" + container.Get_IP_Addr() + ":22";
+	std::string service = "ssh://" + container.Get_IP() + ":22";
 
 	ingress_rule["hostname"] = hostname;
 	ingress_rule["service"] = service;
