@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 
     Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(argc, argv);
     
-    if (true){//command.Get_Partition() == "cloudflare"sv) {
+    if (command.Get_Partition() == "cloudflare"sv) {
 
         std::string ACC;
         std::string ZONE;
@@ -77,8 +77,8 @@ int main(int argc, char* argv[])
                 std::cout << "Service: " << domain["service"] << std::endl << std::endl;
             }
         }
-        else if (true){//command.Get_Command() == "test_ingress") {
-            Container container = Container("docker_id", "test_container_domain_com_e2d", "image", "127.0.0.1", "net_id");
+        else if (command.Get_Command() == "test_ingress") {
+            Container container = Container("docker_id", "test_container_domain_com_e2d", "image");
             Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
             cloudflared.Create_Ingress(container);
         }
