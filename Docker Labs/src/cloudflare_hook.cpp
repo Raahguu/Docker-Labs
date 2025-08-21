@@ -11,6 +11,11 @@ Docker_Labs::Cloudflare::API_Auth::API_Auth(std::string account_id, std::string 
 {
 }
 
+Docker_Labs::Cloudflare::API_Auth::API_Auth(std::string account_id, std::string API_token)
+	: account_id(account_id), zone_id(""), tunnel_id(""), API_token(API_token), domain("")
+{
+}
+
 // Cloudflare::Cloudflared
 Docker_Labs::Cloudflare::Cloudflared::Cloudflared(const API_Auth& auth)
 	: auth(auth)
@@ -85,6 +90,7 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_Ingress_Message(C
 	json current_ingress = Fetch_Ingress();
 	json tunnel_conf = current_ingress["result"]["config"];
 	json ingress_conf = tunnel_conf["ingress"];
+
 	json ingress_rule = "{\"hostname\":\"\",\"service\":\"\"}"_json;
 	json message_body = "{\"config\": { } }"_json;
 
@@ -94,9 +100,8 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_Ingress_Message(C
 
 	ingress_conf.erase(ingress_conf.end() - 1);
 
-
-	std::string hostname = container.Get_Name() + "." + auth.domain;
-	std::string service = "ssh://" + container.Get_IP() + ":22";
+	std::string hostname = container.Get_Name_Cache() + "." + auth.domain;
+	std::string service = "ssh://" + container.Get_IP_Cache() + ":22";
 
 	ingress_rule["hostname"] = hostname;
 	ingress_rule["service"] = service;
@@ -107,6 +112,21 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_Ingress_Message(C
 	message_body["config"]["ingress"] = ingress_conf;
 	return message_body.dump();
 };
+
+
+
+// Cloudflare Floating
+int Docker_Labs::Cloudflare::Test_API(const API_Auth& auth) {
+	return Cloudflared(auth).Test_API();
+}
+std::vector<User> Docker_Labs::Cloudflare::Get_Seats(const API_Auth& auth) {
+	return Cloudflared(auth).Get_Seats();
+}
+
+json Docker_Labs::Cloudflare::Fetch_Ingress(const API_Auth& auth)
+{
+	return Cloudflared(auth).Fetch_Ingress();
+}
 
 int Docker_Labs::Cloudflare::Cloudflared::Create_Ingress(Container container)
 {
@@ -124,17 +144,4 @@ int Docker_Labs::Cloudflare::Cloudflared::Create_Ingress(Container container)
 	return 0;
 }
 
-
-// Cloudflare Floating
-int Docker_Labs::Cloudflare::Test_API(const API_Auth& auth) {
-	return Cloudflared(auth).Test_API();
-}
-std::vector<User> Docker_Labs::Cloudflare::Get_Seats(const API_Auth& auth) {
-	return Cloudflared(auth).Get_Seats();
-}
-
-json Docker_Labs::Cloudflare::Fetch_Ingress(const API_Auth& auth)
-{
-	return Cloudflared(auth).Fetch_Ingress();
-}
 

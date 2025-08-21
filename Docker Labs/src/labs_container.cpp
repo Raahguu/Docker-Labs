@@ -117,8 +117,6 @@ namespace Docker_Labs {
 		this->id = response["body"]["Id"];
 	}
 	
-	Container::Container::Container(std::string email, std::string image_name) : Container(email, image_name, email) {}
-	
 	//Gets
 	std::string Container::Get_ID(){ 
 		return this->id;
@@ -203,6 +201,44 @@ namespace Docker_Labs {
 		}
 
 		return response["body"]["state"]["running"];
+	}
+
+	//Cache Gets
+
+	std::string Container::Get_Name_Cache() {
+		return name_cache;
+	};
+	std::string Container::Get_Image_Cache() {
+		return image_cache;
+	};
+	std::string Container::Get_IP_Cache() {
+		return ip_cache;
+	};
+	std::vector<std::string> Container::Get_Networks_Cache() {
+		return networks_cache;
+	};
+	std::string Container::Get_Owner_Cache() {
+		return owner_cache;
+	};
+
+	int Container::Cache_Update() {
+		name_cache = Get_Name();
+		image_cache = Get_Image();
+		ip_cache = Get_IP();
+		networks_cache = Get_Networks();
+		owner_cache = Get_Owner();
+
+	}
+
+	Container Container::Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks, std::string owner)
+	{
+		Container bogus_container = Container(id);
+		bogus_container.name_cache = name;
+		bogus_container.image_cache = image;
+		bogus_container.ip_cache = ip;
+		bogus_container.networks_cache = networks;
+		bogus_container.owner_cache = owner;
+		return bogus_container;
 	}
 	
 	

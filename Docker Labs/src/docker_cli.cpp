@@ -1,4 +1,4 @@
-#include "docker_commands.h"
+#include "docker_cli.h"
 #include <string>
 #include <string_view>
 #include <map>
@@ -8,7 +8,7 @@
 using json = nlohmann::json;
 using namespace std::string_view_literals;
 
-int Docker_Labs::Docker_Commands::Test_API(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
+int Docker_Labs::Docker::Commands::Test_API(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
 	int returnCode = 0;	
 
 	static struct option long_flags[] = {
@@ -61,7 +61,7 @@ int Docker_Labs::Docker_Commands::Test_API(Docker_Labs::Command_Interpreter comm
 	return 1;
 }
 
-int Docker_Labs::Docker_Commands::Help(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
+int Docker_Labs::Docker::Commands::Help(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
 	std::cout << "./labs-cli docker <command> [<subcommand>] [<flags>]" << std::endl;
 	std::cout << std::endl;
 	std::cout << "The current available commands are:" << std::endl;
@@ -72,12 +72,12 @@ int Docker_Labs::Docker_Commands::Help(Docker_Labs::Command_Interpreter command,
 	return 0;
 }
 
-int Docker_Labs::Docker_Commands::Command_Handler(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
+int Docker_Labs::Docker::Commands::Command_Handler(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
 	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
 
 	static std::map<std::string_view, std::function<int(Docker_Labs::Command_Interpreter, int, char**)>> possible_commands = {
-		{"test-api"sv, Docker_Labs::Docker_Commands::Test_API},
-		{"help"sv, Docker_Labs::Docker_Commands::Help}
+		{"test-api"sv, Docker_Labs::Docker::Commands::Test_API},
+		{"help"sv, Docker_Labs::Docker::Commands::Help}
 	};
 
 	static struct option long_flags[] = {
