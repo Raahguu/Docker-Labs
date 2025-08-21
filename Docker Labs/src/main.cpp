@@ -6,6 +6,8 @@
 #include "labs_user.h"
 #include <iostream>
 #include <string_view>
+#include "labs_container.h"
+#include "docker_commands.h"
 
 
 int main(int argc, char* argv[])
@@ -15,6 +17,8 @@ int main(int argc, char* argv[])
 
     Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(argc, argv);
     
+	//Section for cloudflare commands
+	//./labs-cli cloudflare <command> [<subcommand>]
     if (command.Get_Partition() == "cloudflare"sv)
     {
 
@@ -80,7 +84,7 @@ int main(int argc, char* argv[])
             }
         }
         else if (command.Get_Command() == "test_ingress") {
-            Container container = Container("laith_streigher", "alpine");
+            Container container = Container("laith_streigher", "alpine_ssh");
             Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
             cloudflared.Create_Ingress(container);
         }
@@ -89,11 +93,7 @@ int main(int argc, char* argv[])
     // Use this section for all docker commands
     // e.g. ./labs-cli docker <command> [<subcommand>]
     if (command.Get_Partition() == "docker"sv) {
-        /*User user;
-        user.email = "rl";
-        std::string image = "alpine";
-        Docker_Labs::Docker::Create(user, image);
-        return 0;*/
+    	return Docker_Labs::Docker_Commands::Command_Handler(command, argc, argv);
     }
 
 }
@@ -102,52 +102,45 @@ int main(int argc, char* argv[])
 namespace Docker_Labs {
 
 
-    Command_Interpreter::Command_Interpreter(int argc, char* argv[]) {
+	Command_Interpreter::Command_Interpreter(int argc, char* argv[]) {
 
-        if (argc < 2) {
-            std::cerr << "Usage: labs-cli <partition> [command] [subcommand]\n";
-            
-        }
-        else {
+		if (argc < 2) {
+			std::cerr << "Usage: labs-cli <partition> [command] [subcommand]\n";
+		}
+		else {
 
-            partition = argv[1];
+			partition = argv[1];
 
-            int index = 2;
+			int index = 2;
 
-            // Detect first subcommand if it exists and does not start with '-'
-            if (argc > index && argv[index][0] != '-') {
-                command = argv[index];
-                ++index;
-            }
+			// Detect first subcommand if it exists and does not start with '-'
+			if (argc > index && argv[index][0] != '-') {
+				command = argv[index];
+				++index;
+			}
 
-            // Detect second subcommand if it exists and does not start with '-'
-            if (argc > index && argv[index][0] != '-') {
-                subcommand = argv[index];
-                ++index;
-            }
-        }
-    }
+			// Detect second subcommand if it exists and does not start with '-'
+			if (argc > index && argv[index][0] != '-') {
+				subcommand = argv[index];
+				++index;
+			}
+		}
+	}
+	
+	
+	std::string Command_Interpreter::Get_Partition() {
+		return partition;
+	}
 
-    std::string Command_Interpreter::Get_Partition()
-    {
-        return partition;
-    }
+	std::string Command_Interpreter::Get_Command() {
+		return command;
+	}
 
-    std::string Command_Interpreter::Get_Command()
-    {
-        return command;
-    }
+	std::string Command_Interpreter::Get_SubCommand() {
+		return subcommand;
+	}
 
-    std::string Command_Interpreter::Get_SubCommand()
-    {
-        return subcommand;
-    }
-
-    std::vector<std::string> Command_Interpreter::Get_Flags()
-    {
-        return flags;
-    }
-
-
-
+	std::vector<std::string> Command_Interpreter::Get_Flags() {
+		return flags;
+	}
 }
