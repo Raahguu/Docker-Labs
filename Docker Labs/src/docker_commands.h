@@ -1,0 +1,13 @@
+#include "main.h"
+#include "labs_container.h"
+
+namespace Docker_Labs{
+	namespace Docker_Commands{
+		//Handles figureing out which function each command should go to
+		int Command_Handler(Docker_Labs::Command_Interpreter command, int argc, char* argv[]);
+		
+		//Actual commands
+		int Help(Docker_Labs::Command_Interpreter command, int argc, char* argv[]);
+		int Test_API(Docker_Labs::Command_Interpreter command, int argc, char* argv[]);
+	}
+}

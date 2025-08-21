@@ -3,13 +3,10 @@
 #include <iostream>
 #include <string>
 #include <curl/curl.h>
-#include <nlohmann/json.hpp>
-
-using json = nlohmann::json;
 
 using namespace std;
 
-json CallDockerAPI(const std::string& url, const std::string& data = "", const std::string& method = "GET") {
+json Docker_Labs::Docker::CallDockerAPI(const std::string& url, const std::string& data = "", const std::string& method = "GET") {
     CURL* curl;
     CURLcode res;
     std::string response;
@@ -70,7 +67,7 @@ json CallDockerAPI(const std::string& url, const std::string& data = "", const s
     return result;
 }
 
-uint64_t str_to_long(const std::string& str) {
+uint64_t Docker_Labs::Docker::str_to_long(const std::string& str) {
     uint64_t result = 0;
     for (size_t i = 0; i < str.size(); i++) {
         result |= static_cast<uint64_t>(static_cast<uint8_t>(str[i])) << (8 * i);
@@ -78,7 +75,7 @@ uint64_t str_to_long(const std::string& str) {
     return result + 1000000;
 }
 
-std::string long_to_str(uint64_t value) {
+std::string Docker_Labs::Docker::long_to_str(uint64_t value) {
     std::string result;
     value -= 1000000;
 
@@ -102,11 +99,11 @@ namespace Docker_Labs {
 		std::string request_data = R"({
 			"Image": ")" + image_name + R"(",
 			"HostConfig": {
-				"PidsLimit": )" + std::to_string(str_to_long(email)) + R"(
+				"PidsLimit": )" + std::to_string(Docker_Labs::Docker::str_to_long(email)) + R"(
 			}
 		})";
 
-		json response = CallDockerAPI(url, request_data, "POST");
+		json response = Docker_Labs::Docker::CallDockerAPI(url, request_data, "POST");
 
 		int httpCode = response["httpCode"];
 
@@ -129,7 +126,7 @@ namespace Docker_Labs {
 	
 	std::string Container::Get_Name(){
 		std::string url = "/containers/" + this->id + "/json";
-		json response = CallDockerAPI(url);
+		json response = Docker_Labs::Docker::CallDockerAPI(url);
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cout << "Error " << response["httpCode"] << " getting name of container " << this->id << ": " << response["body"]["message"] << std::endl;
@@ -141,7 +138,7 @@ namespace Docker_Labs {
 	
 	std::string Container::Get_IP(){
 		std::string url = "/containers/" + this->id + "/json";
-		json response = CallDockerAPI(url);
+		json response = Docker_Labs::Docker::CallDockerAPI(url);
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " getting IP of container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -154,7 +151,7 @@ namespace Docker_Labs {
 	
 	std::string Container::Get_Image(){
 		std::string url = "/containers/" + this->id + "/json";
-		json response = CallDockerAPI(url);
+		json response = Docker_Labs::Docker::CallDockerAPI(url);
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " getting image of container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -167,19 +164,19 @@ namespace Docker_Labs {
 
 	std::string Container::Get_Owner(){
 		std::string url = "/containers/" + this->Get_Name() + "/json";
-		json response = CallDockerAPI(url);
+		json response = Docker_Labs::Docker::CallDockerAPI(url);
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cout << "Error " << response["httpCode"] << " getting owner of container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
 			throw "Error";
 		}
 
-		return long_to_str(response["body"]["HostConfig"]["PidsLimit"]);
+		return Docker_Labs::Docker::long_to_str(response["body"]["HostConfig"]["PidsLimit"]);
 	}
 	
 	std::vector<std::string> Container::Get_Networks(){
 		std::string url = "/containers/" + this->Get_Name() + "/json";
-		json response = CallDockerAPI(url);
+		json response = Docker_Labs::Docker::CallDockerAPI(url);
 	
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " getting image of container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -198,7 +195,7 @@ namespace Docker_Labs {
 	
 	bool Container::Get_Status(){
 		std::string url = "/containers/" + this->id + "/json";
-		json response = CallDockerAPI(url);
+		json response = Docker_Labs::Docker::CallDockerAPI(url);
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " getting status of container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -212,7 +209,7 @@ namespace Docker_Labs {
 	//Controllers
 	int Container::Start(){
 		std::string url = "/containers/" + this->Get_ID() + "/start";
-		json response = CallDockerAPI(url, "", "POST");
+		json response = Docker_Labs::Docker::CallDockerAPI(url, "", "POST");
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " starting container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -230,7 +227,7 @@ namespace Docker_Labs {
 
 	int Container::Stop(){
 		std::string url = "/containers/" + this->id + "/stop";
-		json response = CallDockerAPI(url, "", "POST");
+		json response = Docker_Labs::Docker::CallDockerAPI(url, "", "POST");
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " stopping container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -249,7 +246,7 @@ namespace Docker_Labs {
 	
 	int Container::Restart(){
 		std::string url = "/containers/" + this->id + "/restart";
-		json response = CallDockerAPI(url, "", "POST");
+		json response = Docker_Labs::Docker::CallDockerAPI(url, "", "POST");
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " restarting container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -263,7 +260,7 @@ namespace Docker_Labs {
 	
 	int Container::Kill(){
 		std::string url = "/containers/" + this->id + "/kill";
-		json response = CallDockerAPI(url, "", "POST");
+		json response = Docker_Labs::Docker::CallDockerAPI(url, "", "POST");
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cout << "Error " << response["httpCode"] << " killing container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -282,7 +279,7 @@ namespace Docker_Labs {
 	
 	int Container::Remove(){
 		std::string url = "/containers/" + this->id;
-		json response = CallDockerAPI(url, "", "DELETE");
+		json response = Docker_Labs::Docker::CallDockerAPI(url, "", "DELETE");
 
 		if(response["httpCode"] == 400 || response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cout << "Error " << response["httpCode"] << " deleting container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -300,8 +297,8 @@ namespace Docker_Labs {
 	
 	int Container::Set_Owner(std::string email){
 		std::string url = "/containers/" + this->id + "/update";
-		std::string data = R"({"PidsLimit": )" + std::to_string(str_to_long(email)) + R"(})";
-		json response = CallDockerAPI(url, data, "POST");
+		std::string data = R"({"PidsLimit": )" + std::to_string(Docker_Labs::Docker::str_to_long(email)) + R"(})";
+		json response = Docker_Labs::Docker::CallDockerAPI(url, data, "POST");
 		
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " setting the owner of container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
@@ -314,9 +311,9 @@ namespace Docker_Labs {
 }
 
 
-Docker_Labs::Container Docker_Labs::Docker::Get_Container(std::string container_name){	
+Docker_Labs::Container Docker_Labs::Docker::Get_Container(std::string container_name) {	
 		std::string url = "/containers/json?all=true&filters=%7B%22name%22%3A%5B%22^" + container_name + "$%22%5D%7D";
-		json response = CallDockerAPI(url);
+		json response = Docker_Labs::Docker::CallDockerAPI(url);
 
 		if(response["httpCode"] == 404 || response["httpCode"] == 500){
 			std::cerr << "Error " << response["httpCode"] << " getting container " << container_name << ": " << response["body"]["message"] << std::endl;
@@ -404,7 +401,7 @@ int Docker_Labs::Docker::Start(std::string email){
 
 std::vector<Docker_Labs::Container> Docker_Labs::Docker::Get_Owned_Containers(std::string email){
 	std::string url = "/containers/json?all=true";
-	json response = CallDockerAPI(url);
+	json response = Docker_Labs::Docker::CallDockerAPI(url);
 	
 	if(response["httpCode"] != 200){
 		std::cout << "Error " << response["httpCode"] << " getting owned containers: " << response["body"]["message"] << std::endl;
@@ -425,4 +422,11 @@ std::vector<Docker_Labs::Container> Docker_Labs::Docker::Get_Owned_Containers(st
 	std::cout << "Successfuly got all owned containers of " << email;
 	
 	return owned_Containers;
+}
+
+int Docker_Labs::Docker::Test_API(){
+	std::string url = "/info";
+	json response = Docker_Labs::Docker::CallDockerAPI(url);
+	
+	return response["httpCode"];
 }
