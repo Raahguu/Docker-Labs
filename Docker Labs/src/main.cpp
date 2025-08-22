@@ -6,17 +6,21 @@
 #include "labs_container.h"
 #include "docker_cli.h"
 #include "cloudflare_cli.h"
+#include "container_init.h"
 
 
 int main(int argc, char* argv[])
-{   
-	using namespace Docker_Labs; 
+{
+	using namespace Docker_Labs;
 	using namespace std::literals;
 
 	Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(argc, argv);
 
 	//Section for cloudflare commands
 	//./labs-cli cloudflare <command> [<subcommand>]
+	if (command.Get_Partition() == "new") {
+		return Docker_Labs::Init_Handler(argc, argv);
+	}
 
     if (command.Get_Partition() == "cloudflare")
     {

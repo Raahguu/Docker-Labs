@@ -51,8 +51,8 @@ namespace Docker_Labs::Cloudflare {
 		int Revoke_Container(Docker_Labs::Container container, Docker_Labs::User user);
 		//int* Get_Members(Container container);
 		//int* Get_Authorised_Containers(User user);
-		//// Global
-		//int Create(User user);
+		// Global
+		int Init_Access(Container container, User user);
 		//int Delete(Container container);
 		//int Delete(User user);
 	private:
