@@ -1,5 +1,7 @@
 #include <iostream>
 #include "cloudflare_cli.h"
+#include "cloudflare_cli_tests.h"
+#include <getopt.h>
 #include "base64.h"
 
 
@@ -37,7 +39,6 @@ int Docker_Labs::Cloudflare::Commands::Command_Handler(Command_Interpreter comma
         }
     }
     else if (command.Get_Command() == "test") {
-
         if (command.Get_SubCommand() == "api") {
             return Commands::Test_API(cf_auth);
         }
@@ -57,27 +58,40 @@ int Docker_Labs::Cloudflare::Commands::Command_Handler(Command_Interpreter comma
             return Commands::Test_Grant_Policy(cf_auth);
         }
     }
+    else if (command.Get_Command() == "create") {
+        if (command.Get_SubCommand() == "ingress") {
+            return Commands::Create_Ingress(cf_auth, argc, argv);
+        }
+        else if (command.Get_SubCommand() == "dns") {
+            return Commands::Create_DNS(cf_auth, argc, argv);
+        }
+        else if (command.Get_SubCommand() == "app" || command.Get_SubCommand() == "application") {
+            return Commands::Create_Application(cf_auth, argc, argv);
+        }
+    }
+    else if (command.Get_Command() == "remove") {
+        if (command.Get_SubCommand() == "ingress") {
+            return Commands::Remove_Ingress(cf_auth, argc, argv);
+        }
+        else if (command.Get_SubCommand() == "dns") {
+            return Commands::Remove_DNS(cf_auth, argc, argv);
+        }
+        else if (command.Get_SubCommand() == "app" || command.Get_SubCommand() == "application") {
+            return Commands::Remove_Application(cf_auth, argc, argv);
+        }
+    }
+    else if (command.Get_Command() == "update") {
+        return Commands::Update_Ingress(cf_auth, argc, argv);
+    }
+    else if (command.Get_Command() == "grant") {
+        return Commands::Grant_Container(cf_auth, argc, argv);
+    }
+    else if (command.Get_Command() == "revoke") {
+        return Commands::Revoke_Container(cf_auth, argc, argv);
+    }
     return 1;
 }
 
-int Docker_Labs::Cloudflare::Commands::Test_API(API_Auth cf_auth) {
-    int responce_code = Docker_Labs::Cloudflare::Test_API(cf_auth);
-    switch (responce_code)
-    {
-    case 0:
-        std::cout << "Pass" << std::endl;
-        return 0;
-    case 2:
-        std::cout << "Authorization Failure" << std::endl;
-        return 1;
-    case 3:
-        std::cout << "Connection Failure" << std::endl;
-        return 1;
-    default:
-        std::cout << "Unknown Failure" << std::endl;
-        return 1;
-    }
-}
 
 int Docker_Labs::Cloudflare::Commands::Get_Seats(API_Auth cf_auth)
 {
@@ -105,24 +119,6 @@ int Docker_Labs::Cloudflare::Commands::Fetch_Ingress(API_Auth cf_auth)
     return 0;
 }
 
-int Docker_Labs::Cloudflare::Commands::Test_Ingress(API_Auth cf_auth)
-{
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
-    std::cout << "Creating bogus ingress rule." << std::endl;
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
-    cloudflared.Create_Ingress(container);
-    std::cout << "Created." << std::endl << "Waiting 10 seconds before update..." << std::endl;
-    sleep(10);
-    container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
-    cloudflared.Update_Ingress(container);
-    std::cout << "Updated." << std::endl << "Waiting 10 seconds before removal..." << std::endl;
-    sleep(10);
-    cloudflared.Remove_Ingress(container);
-    std::cout << "Removed." << std::endl;
-
-    return 0;
-}
-
 int Docker_Labs::Cloudflare::Commands::Fetch_DNS_Records(API_Auth cf_auth) {
     json responce_body = Docker_Labs::Cloudflare::Fetch_DNS_Records(cf_auth);
     json records = responce_body["result"];
@@ -140,73 +136,112 @@ int Docker_Labs::Cloudflare::Commands::Fetch_DNS_Records(API_Auth cf_auth) {
     return 0;
 }
 
-int Docker_Labs::Cloudflare::Commands::Test_DNS(API_Auth cf_auth)
+Docker_Labs::Container Docker_Labs::Cloudflare::Commands::Spec_Container(int argc, char* argv[])
 {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
-    std::cout << "Creating bogus DNS record..." << std::endl;
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
-    cloudflared.Create_DNS_Record(container);
-    std::cout << "Waiting 1 second for lookup..." << std::endl;
-    sleep(1);
-    Commands::Fetch_DNS_Records(cf_auth);
-    std::cout << "Confirm the bogus record is in the list above." << std::endl << std::endl;
-    std::cout << "Waiting 9 seconds before removal..." << std::endl;
-    sleep(9);
-    cloudflared.Remove_DNS_Record(container);
-    std::cout << "Removed." << std::endl;
+    static struct option long_flags[] = {
+        {"help", no_argument, nullptr, 'h'},
+        {"container", no_argument, nullptr, 0},
+        { nullptr, 0, nullptr, 0 }
+    };
 
-    return 0;
+    std::string container_name = "";
+
+    int opt;
+    int long_index;
+    while ((opt = getopt_long(argc, argv, "h", long_flags, &long_index)) != -1) {
+        switch (opt) {
+        case 'h':
+            std::cout << "I belive in you, you can figure it out :)";
+        case 0:
+            if (std::string(long_flags[long_index].name) == "container")
+                container_name = optarg;
+        case '?':
+        default:
+            std::string temp = argv[optind - 1];
+            while (!temp.empty() && temp[0] == '-') {
+                temp.erase(0, 1);
+            }
+            std::cerr << "Unknown flag: " << temp << std::endl;
+        }
+    }
+
+    return Docker_Labs::Docker::Get_Container(container_name);
 }
-int Docker_Labs::Cloudflare::Commands::Test_Application(API_Auth cf_auth)
+std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::Commands::Spec_Container_User(int argc, char* argv[])
 {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
-    std::cout << "Creating bogus Access Application..." << std::endl;
-    cloudflared.Create_Application(container);
-    std::cout << "Waiting 10 second before removal..." << std::endl;
-    sleep(10);
-    cloudflared.Remove_Application(container);
-    std::cout << "Removed." << std::endl;
+    static struct option long_flags[] = {
+        {"help", no_argument, nullptr, 'h'},
+        {"container", required_argument, nullptr, 0},
+        {"user", required_argument, nullptr, 0},
+        { nullptr, 0, nullptr, 0 }
+    };
 
-    return 0;
+    std::string container_name = "";
+    std::string user = "";
+
+    int opt;
+    int long_index;
+    while ((opt = getopt_long(argc, argv, "h", long_flags, &long_index)) != -1) {
+        switch (opt) {
+        case 'h':
+            std::cout << "I belive in you, you can figure it out :)";
+        case 0:
+            if (std::string(long_flags[long_index].name) == "container")
+                container_name = optarg;
+            else if (std::string(long_flags[long_index].name) == "container")
+                user = optarg;
+        case '?':
+        default:
+            std::string temp = argv[optind - 1];
+            while (!temp.empty() && temp[0] == '-') {
+                temp.erase(0, 1);
+            }
+            std::cerr << "Unknown flag: " << temp << std::endl;
+        }
+    }
+
+    return std::tuple<Container,User>(Docker_Labs::Docker::Get_Container(container_name), User(user));
 }
 
-int Docker_Labs::Cloudflare::Commands::Test_Initialize(API_Auth cf_auth)
+int Docker_Labs::Cloudflare::Commands::Create_Ingress(API_Auth cf_auth, int argc, char* argv[])
 {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
-    cloudflared.Create_Ingress(container);
-    cloudflared.Create_DNS_Record(container);
-    cloudflared.Create_Application(container);
-    cloudflared.Initialize_Policy(container);
-    std::cout << "Full bogus exposed in cloudflare." << std::endl;
-    std::cout << "Waiting 10 seconds before removal..." << std::endl;
-    sleep(10);
-    cloudflared.Remove_Application(container);
-    cloudflared.Remove_DNS_Record(container);
-    cloudflared.Remove_Ingress(container);
-    std::cout << "Removed." << std::endl;
-    return 0;
+    return Cloudflare::Cloudflared(cf_auth).Create_Ingress(Spec_Container(argc, argv));
+}
+int Docker_Labs::Cloudflare::Commands::Update_Ingress(API_Auth cf_auth, int argc, char* argv[])
+{
+    return Cloudflare::Cloudflared(cf_auth).Update_Ingress(Spec_Container(argc, argv));
+}
+int Docker_Labs::Cloudflare::Commands::Remove_Ingress(API_Auth cf_auth, int argc, char* argv[])
+{
+    return Cloudflare::Cloudflared(cf_auth).Remove_Ingress(Spec_Container(argc, argv));
 }
 
-int Docker_Labs::Cloudflare::Commands::Test_Grant_Policy(API_Auth cf_auth) {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
-    User add = User("joshua.finlayson@cassa.au");
-    User remove = User("laith.striegher@cassa.au");
-    cloudflared.Create_Ingress(container);
-    cloudflared.Create_DNS_Record(container);
-    cloudflared.Create_Application(container);
-    cloudflared.Initialize_Policy(container);
-    cloudflared.Grant_Container(container, add);
-    cloudflared.Revoke_Container(container, remove);
-    std::cout << "Full bogus exposed in cloudflare." << std::endl;
-    std::cout << "Waiting for 90 seconds before removal..." << std::endl;
-    sleep(90);
-    cloudflared.Remove_Application(container);
-    cloudflared.Remove_DNS_Record(container);
-    cloudflared.Remove_Ingress(container);
-    std::cout << "Removed." << std::endl;
-    return 0;
+int Docker_Labs::Cloudflare::Commands::Create_DNS(API_Auth cf_auth, int argc, char* argv[]) {
+    return Cloudflare::Cloudflared(cf_auth).Create_DNS_Record(Spec_Container(argc, argv));
+}
+int Docker_Labs::Cloudflare::Commands::Remove_DNS(API_Auth cf_auth, int argc, char* argv[]) {
+    return Cloudflare::Cloudflared(cf_auth).Create_DNS_Record(Spec_Container(argc, argv));
+}
+
+int Docker_Labs::Cloudflare::Commands::Create_Application(API_Auth cf_auth, int argc, char* argv[]) {
+    return Cloudflare::Cloudflared(cf_auth).Create_Application(Spec_Container(argc, argv));
+}
+int Docker_Labs::Cloudflare::Commands::Remove_Application(API_Auth cf_auth, int argc, char* argv[]) {
+    return Cloudflare::Cloudflared(cf_auth).Remove_Application(Spec_Container(argc, argv));
+}
+
+int Docker_Labs::Cloudflare::Commands::Initilize_Access_Policy(API_Auth cf_auth, int argc, char* argv[])
+{
+    return Cloudflare::Cloudflared(cf_auth).Initialize_Policy(Spec_Container(argc, argv));
+}
+int Docker_Labs::Cloudflare::Commands::Grant_Container(API_Auth cf_auth, int argc, char* argv[])
+{
+    std::tuple<Container, User> container_user = Spec_Container_User(argc, argv);
+    return Cloudflare::Cloudflared(cf_auth).Grant_Container(std::get<Container>(container_user),std::get<User>(container_user));
+}
+int Docker_Labs::Cloudflare::Commands::Revoke_Container(API_Auth cf_auth, int argc, char* argv[])
+{
+    std::tuple<Container, User> container_user = Spec_Container_User(argc, argv);
+    return Cloudflare::Cloudflared(cf_auth).Grant_Container(std::get<Container>(container_user), std::get<User>(container_user));
 }
 

@@ -234,11 +234,7 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_Application_Confi
 std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Initial_Policy_Config(Container container)
 {
 	nlohmann::json message_body = "{\"decision\":\"allow\",\"include\":[]}"_json;
-	nlohmann::json target = "{\"email\":{}}"_json;
-	//target["email"]["email"] = container.Get_Owner_Cache();
-	message_body["include"].push_back(target);
 	message_body["name"] = "Access Policy for '" + container.Get_Name_Cache() + "'";
-
 	return message_body.dump();
 }
 std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Grant_Policy_Config(Docker_Labs::Container container, Docker_Labs::User user)
