@@ -36,12 +36,20 @@ namespace Docker_Labs::Cloudflare {
 		// Ingress
 		json Fetch_Ingress();
 		int Create_Ingress(Container container);
-		//int Delete_Ingress(Container container);
-		//// Appliaction
-		//int Create_Application(Container container);
-		//int Delete_Application(Container container);
+		int Remove_Ingress(Container container);
+		int Update_Ingress(Container container);
+		// DNS
+		json Fetch_DNS_Records();
+		json Fetch_DNS_Record(Container container);
+		int Create_DNS_Record(Container container);
+		int Remove_DNS_Record(Container container);
+		// Appliaction
+		json Fetch_Application(Container container);
+		int Create_Application(Container container);
+		int Remove_Application(Container container);
 		//// Policy
-		//int Grant_Container(Container container, User user);
+		int Initialize_Policy(Container container);
+		int Grant_Container(Container container, User user);
 		//int Revoke_Container(Container container, User user);
 		//int* Get_Members(Container container);
 		//int* Get_Authorised_Containers(User user);
@@ -52,7 +60,20 @@ namespace Docker_Labs::Cloudflare {
 	private:
 		const API_Auth& auth;
 		Curl_Wrapper curl;
-		std::string Generate_Add_Ingress_Message(Container container);
+
+		// Ingress data
+		std::string Generate_Add_Ingress_Config(Container container);
+		std::string Generate_Remove_Ingress_Config(Container container);
+		std::string Generate_Update_Ingress_Config(Container container);
+
+		// DNS data
+		std::string Generate_Add_DNS_Config(Container container);
+
+		// Application data
+		std::string Generate_Add_Application_Config(Container container);
+
+		// Policy data
+		std::string Generate_Initial_Policy_Config(Container container);
 
 	};
 
@@ -61,4 +82,5 @@ namespace Docker_Labs::Cloudflare {
 	std::vector<User> Get_Seats(const API_Auth& auth);
 
 	json Fetch_Ingress(const API_Auth& auth);
+	json Fetch_DNS_Records(const API_Auth& auth);
 }

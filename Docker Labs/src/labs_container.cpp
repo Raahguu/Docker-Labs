@@ -67,39 +67,18 @@ json Docker_Labs::Docker::CallDockerAPI(const std::string& url, const std::strin
     return result;
 }
 
-uint64_t Docker_Labs::Docker::str_to_long(const std::string& str) {
-    uint64_t result = 0;
-    for (size_t i = 0; i < str.size(); i++) {
-        result |= static_cast<uint64_t>(static_cast<uint8_t>(str[i])) << (8 * i);
-    }
-    return result + 1000000;
-}
-
-std::string Docker_Labs::Docker::long_to_str(uint64_t value) {
-    std::string result;
-    value -= 1000000;
-
-    while (value != 0) {
-        char c = static_cast<char>(value & 0xFF);
-        result.push_back(c);
-        value >>= 8;
-    }
-
-    return result;
-}
-
 namespace Docker_Labs {	
 	//Constructors
 
 	Container::Container(std::string id) : id(id) {}
 
-	Container::Container(std::string email, std::string image_name, std::string container_name) {
+	Container::Container(std::string container_name, std::string image_name) {
 		std::string url = "/containers/create?name=" + container_name;
 
 		std::string request_data = R"({
 			"Image": ")" + image_name + R"(",
-			"HostConfig": {
-				"PidsLimit": )" + std::to_string(Docker_Labs::Docker::str_to_long(email)) + R"(
+			"Labels": {
+				"Docker_Labs": "true"
 			}
 		})";
 
@@ -117,8 +96,6 @@ namespace Docker_Labs {
 		this->id = response["body"]["Id"];
 	}
 	
-	Container::Container::Container(std::string email, std::string image_name) : Container(email, image_name, email) {}
-	
 	//Gets
 	std::string Container::Get_ID(){ 
 		return this->id;
@@ -133,7 +110,7 @@ namespace Docker_Labs {
 			return "";
 		}
 
-		return response["body"]["Names"].empty() ? this->id : response["body"]["Names"][0].dump().substr(1);
+		return response["body"]["Name"].empty() ? this->id : response["body"]["Name"].dump().substr(2, response["body"]["Name"].dump().length() - 3);
 	}
 	
 	std::string Container::Get_IP(){
@@ -159,19 +136,6 @@ namespace Docker_Labs {
 		}
 
 		return response["body"]["Config"]["Image"];
-	}
-	
-
-	std::string Container::Get_Owner(){
-		std::string url = "/containers/" + this->Get_Name() + "/json";
-		json response = Docker_Labs::Docker::CallDockerAPI(url);
-
-		if(response["httpCode"] == 404 || response["httpCode"] == 500){
-			std::cout << "Error " << response["httpCode"] << " getting owner of container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
-			throw "Error";
-		}
-
-		return Docker_Labs::Docker::long_to_str(response["body"]["HostConfig"]["PidsLimit"]);
 	}
 	
 	std::vector<std::string> Container::Get_Networks(){
@@ -202,7 +166,40 @@ namespace Docker_Labs {
 			throw "Error";
 		}
 
-		return response["body"]["state"]["running"];
+		return response["body"]["State"]["Running"];
+	}
+
+	//Cache Gets
+
+	std::string Container::Get_Name_Cache() {
+		return name_cache;
+	};
+	std::string Container::Get_Image_Cache() {
+		return image_cache;
+	};
+	std::string Container::Get_IP_Cache() {
+		return ip_cache;
+	};
+	std::vector<std::string> Container::Get_Networks_Cache() {
+		return networks_cache;
+	};
+
+	int Container::Cache_Update() {
+		name_cache = Get_Name();
+		image_cache = Get_Image();
+		ip_cache = Get_IP();
+		networks_cache = Get_Networks();
+		return 0;
+	}
+
+	Container Container::Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks)
+	{
+		Container bogus_container = Container(id);
+		bogus_container.name_cache = name;
+		bogus_container.image_cache = image;
+		bogus_container.ip_cache = ip;
+		bogus_container.networks_cache = networks;
+		return bogus_container;
 	}
 	
 	
@@ -278,6 +275,7 @@ namespace Docker_Labs {
 	
 	
 	int Container::Remove(){
+		std::cout << "Removing Container " << this->Get_Name() << std::endl;
 		std::string url = "/containers/" + this->id;
 		json response = Docker_Labs::Docker::CallDockerAPI(url, "", "DELETE");
 
@@ -290,23 +288,9 @@ namespace Docker_Labs {
 			return 409;
 		}
 		
-		std::cout << "Container " << this->Get_Name() << " successfully removed" << std::endl;
+		std::cout << "Container successfully removed" << std::endl;
 
 		return 204;
-	}
-	
-	int Container::Set_Owner(std::string email){
-		std::string url = "/containers/" + this->id + "/update";
-		std::string data = R"({"PidsLimit": )" + std::to_string(Docker_Labs::Docker::str_to_long(email)) + R"(})";
-		json response = Docker_Labs::Docker::CallDockerAPI(url, data, "POST");
-		
-		if(response["httpCode"] == 404 || response["httpCode"] == 500){
-			std::cerr << "Error " << response["httpCode"] << " setting the owner of container " << this->Get_Name() << ": " << response["body"]["message"] << std::endl;
-			return response["httpCode"];
-		}
-		
-		std::cout << "Successfully changed the owner of " << this->Get_Name() << " to be " << email << std::endl;
-		return 200;
 	}
 }
 
@@ -323,106 +307,6 @@ Docker_Labs::Container Docker_Labs::Docker::Get_Container(std::string container_
 		return Container(response["body"][0]["Id"]);
 }
 
-int Docker_Labs::Docker::Kill(std::string email){
-	std::vector<Docker_Labs::Container> containers = Get_Owned_Containers(email);
-
-	int final_response = 204;
-
-	for(Container& container : containers){
-		int response = container.Kill();
-		if(response != 204){
-			final_response = response;
-		}
-	}
-	
-	return final_response;
-}
-
-int Docker_Labs::Docker::Remove(std::string email){
-	std::vector<Docker_Labs::Container> containers = Get_Owned_Containers(email);
-
-	int final_response = 204;
-
-	for(Container& container : containers){
-		int response = container.Remove();
-		if(response != 204){
-			final_response = response;
-		}
-	}
-	
-	return final_response;
-}
-
-int Docker_Labs::Docker::Restart(std::string email){
-	std::vector<Docker_Labs::Container> containers = Get_Owned_Containers(email);
-
-	int final_response = 204;
-
-	for(Container& container : containers){
-		int response = container.Restart();
-		if(response != 204){
-			final_response = response;
-		}
-	}
-	
-	return final_response;
-}
-
-
-int Docker_Labs::Docker::Stop(std::string email){
-	std::vector<Docker_Labs::Container> containers = Get_Owned_Containers(email);
-
-	int final_response = 204;
-
-	for(Container& container : containers){
-		int response = container.Stop();
-		if(response != 204 && response != 304){
-			final_response = response;
-		}
-	}
-	
-	return final_response;
-}
-
-int Docker_Labs::Docker::Start(std::string email){
-	std::vector<Docker_Labs::Container> containers = Get_Owned_Containers(email);
-
-	int final_response = 204;
-
-	for(Container& container : containers){
-		int response = container.Start();
-		if(response != 204 && response != 304){
-			final_response = response;
-		}
-	}
-	
-	return final_response;
-}
-
-std::vector<Docker_Labs::Container> Docker_Labs::Docker::Get_Owned_Containers(std::string email){
-	std::string url = "/containers/json?all=true";
-	json response = Docker_Labs::Docker::CallDockerAPI(url);
-	
-	if(response["httpCode"] != 200){
-		std::cout << "Error " << response["httpCode"] << " getting owned containers: " << response["body"]["message"] << std::endl;
-		return std::vector<Container>();
-	}
-
-	std::vector<Docker_Labs::Container> owned_Containers;
-
-	for(const auto& container_json : response["body"]){
-		std::string container_id = container_json["Id"];
-
-		if(Container(container_id).Get_Owner() == email){
-			Container container = Container(container_id);
-			owned_Containers.push_back(container);
-		}
-	}
-
-	std::cout << "Successfuly got all owned containers of " << email;
-	
-	return owned_Containers;
-}
 
 int Docker_Labs::Docker::Test_API(){
 	std::string url = "/info";
