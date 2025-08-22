@@ -9,5 +9,6 @@ namespace Docker_Labs{
 		//Actual commands
 		int Help(Docker_Labs::Command_Interpreter command, int argc, char* argv[]);
 		int Test_API(Docker_Labs::Command_Interpreter command, int argc, char* argv[]);
+		int Test_Container_Creation(Docker_Labs::Command_Interpreter command, int argc, char* argv[]);
 	}
 }

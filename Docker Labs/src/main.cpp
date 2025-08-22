@@ -84,6 +84,7 @@ int main(int argc, char* argv[])
             }
         }
         else if (command.Get_Command() == "test_ingress") {
+			//run the command 'docker build -t alpine_ssh -f ./ImageDockerFiles/alpineDockerFile .' first to get the image
             Container container = Container("laith_streigher", "alpine_ssh");
             Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
             cloudflared.Create_Ingress(container);
