@@ -48,7 +48,6 @@ namespace Docker_Labs {
 	namespace Docker {
 		Container Get_Container(std::string container_name);
 		json CallDockerAPI(const std::string& url, const std::string& data, const std::string& method);
-
 		int Test_API();
 	}
 

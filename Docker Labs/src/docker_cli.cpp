@@ -1,6 +1,5 @@
 #include "docker_cli.h"
 #include <string>
-#include <string_view>
 #include <map>
 #include <getopt.h>
 #include <iostream>
@@ -121,8 +120,8 @@ int Docker_Labs::Docker::Commands::Test_Container_Creation(Docker_Labs::Command_
 	
 	std::string id = result.Get_ID();
 	std::cout << "Container Id: " << id << std::endl;
-	name = result.Get_Name();
-	std::cout << "Container Name: " << name << std::endl;
+	std::string container_name = result.Get_Name();
+	std::cout << "Container Name: " << container_name << std::endl;
 	std::string ip = result.Get_IP();
 	std::cout << "Container IP: " << ip << std::endl;
 	image = result.Get_Image();
@@ -135,7 +134,18 @@ int Docker_Labs::Docker::Commands::Test_Container_Creation(Docker_Labs::Command_
 		std::cout << network << std::endl;
 	}
 	
+	result.Restart();
 	result.Stop();
+	
+	std::cout << "Checking getting the container with the name" << std::endl;
+	if(Docker_Labs::Docker::Get_Container(name).Get_ID() == result.Get_ID()){
+		std::cout << "Success!" << std::endl;
+	} else {
+		std::cout << "Failed" << std::endl;
+	}
+	
+	result.Start();
+	result.Kill();
 	result.Remove();
 	
 	return 0;

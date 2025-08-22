@@ -1,6 +1,4 @@
 ﻿// Docker Labs.cpp : Defines the entry point for the application.
-//
-
 #include "main.h"
 #include "cloudflare_hook.h"
 #include "labs_user.h"
@@ -8,7 +6,6 @@
 #include "labs_container.h"
 #include "docker_cli.h"
 #include "cloudflare_cli.h"
-#include <string_view>
 
 
 int main(int argc, char* argv[])
@@ -20,16 +17,17 @@ int main(int argc, char* argv[])
 
 	//Section for cloudflare commands
 	//./labs-cli cloudflare <command> [<subcommand>]
-	if (command.Get_Partition() == "cloudflare"sv)
-	{
-		return Docker_Labs::Cloudflare::Commands::Command_Handler(command, argc, argv);
-	}
 
-	// Use this section for all docker commands
-	// e.g. ./labs-cli docker <command> [<subcommand>]
-	if (command.Get_Partition() == "docker"sv) {
-		return Docker_Labs::Docker::Commands::Command_Handler(command, argc, argv);
-	}
+    if (command.Get_Partition() == "cloudflare")
+    {
+		return Docker_Labs::Cloudflare::Commands::Command_Handler(command, argc, argv);
+    }
+    
+    // Use this section for all docker commands
+    // e.g. ./labs-cli docker <command> [<subcommand>]
+    if (command.Get_Partition() == "docker") {
+    	return Docker_Labs::Docker::Commands::Command_Handler(command, argc, argv);
+    }
 
 }
 

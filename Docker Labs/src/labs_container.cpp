@@ -294,7 +294,6 @@ namespace Docker_Labs {
 	}
 }
 
-
 Docker_Labs::Container Docker_Labs::Docker::Get_Container(std::string container_name) {	
 		std::string url = "/containers/json?all=true&filters=%7B%22name%22%3A%5B%22^" + container_name + "$%22%5D%7D";
 		json response = Docker_Labs::Docker::CallDockerAPI(url);
@@ -306,7 +305,6 @@ Docker_Labs::Container Docker_Labs::Docker::Get_Container(std::string container_
 		
 		return Container(response["body"][0]["Id"]);
 }
-
 
 int Docker_Labs::Docker::Test_API(){
 	std::string url = "/info";
