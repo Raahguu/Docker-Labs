@@ -4,7 +4,7 @@
 #include "labs_user.h"
 #include <nlohmann/json.hpp>		
 
-using json = nlohmann::json;
+using js0n = nlohmann::json;
 
 namespace Docker_Labs {
 
@@ -58,7 +58,7 @@ namespace Docker_Labs {
 		int Restart(std::string email);
 		int Kill(std::string email);
 		int Remove(std::string email);
-		json CallDockerAPI(const std::string& url, const std::string& data, const std::string& method);
+		js0n CallDockerAPI(const std::string& url, const std::string& data, const std::string& method);
 		uint64_t str_to_long(const std::string& str);
 		std::string long_to_str(uint64_t value);
 

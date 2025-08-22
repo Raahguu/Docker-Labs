@@ -20,14 +20,14 @@ int main(int argc, char* argv[])
     
 	//Section for cloudflare commands
 	//./labs-cli cloudflare <command> [<subcommand>]
-    if (command.Get_Partition() == "cloudflare"sv)
+    if (command.Get_Partition() == "cloudflare")
     {
 		return Docker_Labs::Cloudflare::Commands::Command_Handler(command, argc, argv);
     }
     
     // Use this section for all docker commands
     // e.g. ./labs-cli docker <command> [<subcommand>]
-    if (command.Get_Partition() == "docker"sv) {
+    if (command.Get_Partition() == "docker") {
     	return Docker_Labs::Docker::Commands::Command_Handler(command, argc, argv);
     }
 

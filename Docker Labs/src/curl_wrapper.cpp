@@ -7,9 +7,7 @@ Curl_Wrapper::Curl_Wrapper()
 	curl = curl_easy_init();
 }
 
-Curl_Wrapper::~Curl_Wrapper()
-{
-}
+Curl_Wrapper::~Curl_Wrapper() {}
 
 std::size_t Curl_Wrapper::WriteCallback(char* contents, std::size_t size, std::size_t nmemb, std::string* userp) {
 	std::string* response = static_cast<std::string*>(userp);

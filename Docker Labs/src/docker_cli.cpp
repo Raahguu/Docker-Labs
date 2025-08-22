@@ -5,7 +5,7 @@
 #include <getopt.h>
 #include <iostream>
 
-using json = nlohmann::json;
+using js0n = nlohmann::json;
 using namespace std::string_view_literals;
 
 int Docker_Labs::Docker::Commands::Test_API(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
