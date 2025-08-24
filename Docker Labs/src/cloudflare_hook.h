@@ -26,29 +26,33 @@ namespace Docker_Labs::Cloudflare {
 	class Cloudflared {
 	public:
 		Cloudflared(const API_Auth& auth);
+		Cloudflared(const API_Auth& auth, bool must_cout);
 		int Test_API();
 		// Seats
-		std::vector<Docker_Labs::User> Get_Seats();
+		std::vector<User> Fetch_Seats();
 		//int Revoke_Seat(User user);
 		// Ingress
 		nlohmann::json Fetch_Ingress();
-		int Create_Ingress(Docker_Labs::Container container);
-		int Remove_Ingress(Docker_Labs::Container container);
-		int Update_Ingress(Docker_Labs::Container container);
+		nlohmann::json Fetch_Ingress_Config();
+		int Create_Ingress(Container container);
+		int Remove_Ingress(Container container);
+		int Update_Ingress(Container container);
 		// DNS
 		nlohmann::json Fetch_DNS_Records();
-		nlohmann::json Fetch_DNS_Record(Docker_Labs::Container container);
-		int Create_DNS_Record(Docker_Labs::Container container);
-		int Remove_DNS_Record(Docker_Labs::Container container);
+		nlohmann::json Fetch_DNS_Record(Container container);
+		int Create_DNS_Record(Container container);
+		int Remove_DNS_Record(Container container);
 		// Appliaction
-		nlohmann::json Fetch_Application(Docker_Labs::Container container);
-		int Create_Application(Docker_Labs::Container container);
-		int Remove_Application(Docker_Labs::Container container);
+		nlohmann::json Fetch_Application(Container container);
+		int Create_Application(Container container);
+		int Remove_Application(Container container);
 		//// Policy
-		nlohmann::json Fetch_Application_Policy(Docker_Labs::Container container);
-		int Initialize_Policy(Docker_Labs::Container container);
-		int Grant_Container(Docker_Labs::Container container, Docker_Labs::User user);
-		int Revoke_Container(Docker_Labs::Container container, Docker_Labs::User user);
+		nlohmann::json Fetch_Application_Policy(Container container);
+		nlohmann::json Fetch_Application_Policy(Container container, std::string application_id);
+		int Initialize_Policy(Container container, User user);
+		int Initialize_Policy(Container container, User user, std::string application_id);
+		int Grant_Container(Container container, User user);
+		int Revoke_Container(Container container, User user);
 		//int* Get_Members(Container container);
 		//int* Get_Authorised_Containers(User user);
 		// Global
@@ -59,27 +63,32 @@ namespace Docker_Labs::Cloudflare {
 		const API_Auth& auth;
 		Curl_Wrapper curl;
 
+		bool must_cout;
+
 		// Ingress data
-		std::string Generate_Add_Ingress_Config(Docker_Labs::Container container);
-		std::string Generate_Remove_Ingress_Config(Docker_Labs::Container container);
-		std::string Generate_Update_Ingress_Config(Docker_Labs::Container container);
+		std::string Generate_Add_Ingress_Config(Container container);
+		std::string Generate_Add_Ingress_Config(Container container, json current_ingress);
+		std::string Generate_Remove_Ingress_Config(Container container);
+		std::string Generate_Remove_Ingress_Config(Container container, json current_ingress);
+		std::string Generate_Update_Ingress_Config(Container container);
+		std::string Generate_Update_Ingress_Config(Container container, json current_ingress);
 
 		// DNS data
-		std::string Generate_Add_DNS_Config(Docker_Labs::Container container);
+		std::string Generate_Add_DNS_Config(Container container);
 
 		// Application data
-		std::string Generate_Add_Application_Config(Docker_Labs::Container container);
+		std::string Generate_Add_Application_Config(Container container);
 
 		// Policy data
-		std::string Generate_Initial_Policy_Config(Docker_Labs::Container container);
-		std::string Generate_Grant_Policy_Config(Docker_Labs::Container container, Docker_Labs::User user);
-		std::string Generate_Revoke_Policy_Config(Docker_Labs::Container container, Docker_Labs::User user);
+		std::string Generate_Initial_Policy_Config(Container container, User user);
+		std::string Generate_Grant_Policy_Config(Container container, User user);
+		std::string Generate_Revoke_Policy_Config(Container container, User user);
 
 	};
 
 	int Test_API(const API_Auth& auth);
 
-	std::vector<Docker_Labs::User> Get_Seats(const API_Auth& auth);
+	std::vector<User> Fetch_Seats(const API_Auth& auth);
 
 	nlohmann::json Fetch_Ingress(const API_Auth& auth);
 	nlohmann::json Fetch_DNS_Records(const API_Auth& auth);

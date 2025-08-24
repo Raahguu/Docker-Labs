@@ -2,8 +2,6 @@
 #include "cloudflare_cli.h"
 #include "cloudflare_cli_tests.h"
 #include <getopt.h>
-#include "base64.h"
-
 
 int Docker_Labs::Cloudflare::Commands::Command_Handler(Command_Interpreter command, int argc, char* argv[]) {
     std::string ACC;
@@ -95,7 +93,7 @@ int Docker_Labs::Cloudflare::Commands::Command_Handler(Command_Interpreter comma
 
 int Docker_Labs::Cloudflare::Commands::Get_Seats(API_Auth cf_auth)
 {
-    std::vector<Docker_Labs::User> users = Docker_Labs::Cloudflare::Get_Seats(cf_auth);
+    std::vector<Docker_Labs::User> users = Docker_Labs::Cloudflare::Fetch_Seats(cf_auth);
     for (Docker_Labs::User user : users) {
         std::cout << user.Get_Email() << std::endl;
     }
@@ -243,11 +241,6 @@ int Docker_Labs::Cloudflare::Commands::Remove_Application(API_Auth cf_auth, int 
     return Cloudflare::Cloudflared(cf_auth).Remove_Application(container);
 }
 
-int Docker_Labs::Cloudflare::Commands::Initilize_Access_Policy(API_Auth cf_auth, int argc, char* argv[])
-{
-    Container container = Spec_Container(argc,argv);
-    return Cloudflare::Cloudflared(cf_auth).Initialize_Policy(container);
-}
 int Docker_Labs::Cloudflare::Commands::Grant_Container(API_Auth cf_auth, int argc, char* argv[])
 {
     std::tuple<Container, User> container_user = Spec_Container_User(argc, argv);

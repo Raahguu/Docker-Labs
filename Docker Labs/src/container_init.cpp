@@ -35,9 +35,10 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-
-
     std::uniform_int_distribution<> dist(0, 35);
+    static const std::string chars =
+        "0123456789"
+        "abcdefghijklmnopqrstuvwxyz";
 
     static struct option long_flags[] = {
         {"help", no_argument, nullptr, 'h'},
@@ -46,10 +47,6 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
         {"name", required_argument, nullptr, 0},
         { nullptr, 0, nullptr, 0 }
     };
-
-    static const std::string chars =
-        "0123456789"
-        "abcdefghijklmnopqrstuvwxyz";
 
     std::string email = "";
     std::string image = "";
@@ -66,6 +63,8 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
                 email = optarg;
             else if (std::string(long_flags[long_index].name) == "image")
                 image = optarg;
+            else if (std::string(long_flags[long_index].name) == "image")
+                container_name = optarg;
         case '?':
         default:
             std::string temp = argv[optind - 1];

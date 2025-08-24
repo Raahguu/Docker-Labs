@@ -25,7 +25,7 @@ int Docker_Labs::Cloudflare::Commands::Test_Ingress(API_Auth cf_auth)
 {
     Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
     std::cout << "Creating bogus ingress rule." << std::endl;
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
+    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     cloudflared.Create_Ingress(container);
     std::cout << "Created." << std::endl << "Waiting 10 seconds before update..." << std::endl;
     sleep(10);
@@ -42,7 +42,7 @@ int Docker_Labs::Cloudflare::Commands::Test_DNS(API_Auth cf_auth)
 {
     Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
     std::cout << "Creating bogus DNS record..." << std::endl;
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
+    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     cloudflared.Create_DNS_Record(container);
     std::cout << "Waiting 1 second for lookup..." << std::endl;
     sleep(1);
@@ -58,7 +58,7 @@ int Docker_Labs::Cloudflare::Commands::Test_DNS(API_Auth cf_auth)
 int Docker_Labs::Cloudflare::Commands::Test_Application(API_Auth cf_auth)
 {
     Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
+    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     std::cout << "Creating bogus Access Application..." << std::endl;
     cloudflared.Create_Application(container);
     std::cout << "Waiting 10 second before removal..." << std::endl;
@@ -73,11 +73,10 @@ int Docker_Labs::Cloudflare::Commands::Test_Application(API_Auth cf_auth)
 int Docker_Labs::Cloudflare::Commands::Test_Initialize(API_Auth cf_auth)
 {
     Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
-    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
+    Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     cloudflared.Create_Ingress(container);
     cloudflared.Create_DNS_Record(container);
     cloudflared.Create_Application(container);
-    cloudflared.Initialize_Policy(container);
     std::cout << "Full bogus exposed in cloudflare." << std::endl;
     std::cout << "Waiting 10 seconds before removal..." << std::endl;
     sleep(10);
@@ -96,7 +95,6 @@ int Docker_Labs::Cloudflare::Commands::Test_Grant_Policy(API_Auth cf_auth) {
     cloudflared.Create_Ingress(container);
     cloudflared.Create_DNS_Record(container);
     cloudflared.Create_Application(container);
-    cloudflared.Initialize_Policy(container);
     cloudflared.Grant_Container(container, add);
     cloudflared.Revoke_Container(container, remove);
     std::cout << "Full bogus exposed in cloudflare." << std::endl;
