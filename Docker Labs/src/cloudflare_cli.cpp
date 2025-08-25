@@ -4,78 +4,68 @@
 #include <getopt.h>
 
 int Docker_Labs::Cloudflare::Commands::Command_Handler(Command_Interpreter command, int argc, char* argv[]) {
-    std::string ACC;
-    std::string ZONE;
-    std::string TUNN;
-    std::string TKN;
-    std::string DOMN;
+    Docker_Labs::Cloudflare::API_Auth cf_auth = Docker_Labs::Cloudflare::API_Auth::Get_Auth();
 
-    std::cin >> ACC;
-    std::cin >> ZONE;
-    std::cin >> TUNN;
-    std::cin >> TKN;
-    std::cin >> DOMN;
+    static std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth)>> fetch_commands = {
+        {"seats",       Commands::Get_Seats},
+        {"ingress",     Commands::Fetch_Ingress},
+        {"dns",         Commands::Fetch_DNS_Records}
+    };
 
-    Docker_Labs::Cloudflare::API_Auth cf_auth = Docker_Labs::Cloudflare::API_Auth(
-        ACC,
-        ZONE,
-        TUNN,
-        TKN,
-        DOMN
-    );
+    static std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth)>> test_commands = {
+        {"api",         Commands::Test_API},
+        {"ingress",     Commands::Test_Ingress},
+        {"dns",         Commands::Test_DNS},
+        {"app",         Commands::Test_Application},
+        {"application", Commands::Test_Application},
+        {"full-init",   Commands::Test_Initialize},
+        {"grant",       Commands::Test_Grant_Policy}
+    };
+
+    static std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth, int, char**)>> create_commands = {
+        {"ingress", Commands::Create_Ingress},
+        {"dns", Commands::Create_DNS},
+        {"app", Commands::Create_Application},
+        {"application", Commands::Create_Application}
+    };
+
+    static std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth, int, char**)>> remove_commands = {
+        {"ingress", Commands::Remove_Ingress},
+        {"dns", Commands::Remove_DNS},
+        {"app", Commands::Remove_Application},
+        {"application", Commands::Remove_Application}
+    };
 
     if (command.Get_Command() == "fetch") {
-        if (command.Get_SubCommand() == "seats") {
-            return Commands::Get_Seats(cf_auth);
-        }
-        else if (command.Get_SubCommand() == "ingress")
-        {
-            return Commands::Fetch_Ingress(cf_auth);
-        }
-        else if (command.Get_SubCommand() == "dns") {
-            return Commands::Fetch_DNS_Records(cf_auth);
+        std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth)>>::iterator
+            it = fetch_commands.find(command.Get_SubCommand());
+
+        if (it != fetch_commands.end()) {
+            return it->second(cf_auth);
         }
     }
     else if (command.Get_Command() == "test") {
-        if (command.Get_SubCommand() == "api") {
-            return Commands::Test_API(cf_auth);
-        }
-        else if (command.Get_SubCommand() == "ingress") {
-            return Commands::Test_Ingress(cf_auth);
-        }
-        else if (command.Get_SubCommand() == "dns") {
-            return Commands::Test_DNS(cf_auth);
-        }
-        else if (command.Get_SubCommand() == "app" || command.Get_SubCommand() == "application") {
-            return Commands::Test_Application(cf_auth);
-        }
-        else if (command.Get_SubCommand() == "full-init") {
-            return Commands::Test_Initialize(cf_auth);
-        }
-        else if (command.Get_SubCommand() == "grant") {
-            return Commands::Test_Grant_Policy(cf_auth);
+        std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth)>>::iterator
+            it = test_commands.find(command.Get_SubCommand());
+
+        if (it != test_commands.end()) {
+            return it->second(cf_auth);
         }
     }
     else if (command.Get_Command() == "create") {
-        if (command.Get_SubCommand() == "ingress") {
-            return Commands::Create_Ingress(cf_auth, argc, argv);
-        }
-        else if (command.Get_SubCommand() == "dns") {
-            return Commands::Create_DNS(cf_auth, argc, argv);
-        }
-        else if (command.Get_SubCommand() == "app" || command.Get_SubCommand() == "application") {
-            return Commands::Create_Application(cf_auth, argc, argv);
+        std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth, int, char**)>>::iterator
+            it = create_commands.find(command.Get_SubCommand());
+
+        if (it != create_commands.end()) {
+            return it->second(cf_auth, argc, argv);
         }
     }
     else if (command.Get_Command() == "remove") {
-        if (command.Get_SubCommand() == "ingress") {
-            return Commands::Remove_Ingress(cf_auth, argc, argv);
-        }
-        else if (command.Get_SubCommand() == "dns") {
-            return Commands::Remove_DNS(cf_auth, argc, argv);
-        }
-        else if (command.Get_SubCommand() == "app" || command.Get_SubCommand() == "application") {
-            return Commands::Remove_Application(cf_auth, argc, argv);
+        std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth, int, char**)>>::iterator
+            it = remove_commands.find(command.Get_SubCommand());
+
+        if (it != remove_commands.end()) {
+            return it->second(cf_auth, argc, argv);
         }
     }
     else if (command.Get_Command() == "update") {
@@ -137,7 +127,7 @@ Docker_Labs::Container Docker_Labs::Cloudflare::Commands::Spec_Container(int arg
 {
     static struct option long_flags[] = {
         {"help", no_argument, nullptr, 'h'},
-        {"container", required_argument, nullptr, 0},
+        {"container", required_argument, nullptr, 'c'},
         { nullptr, 0, nullptr, 0 }
     };
 
@@ -145,13 +135,14 @@ Docker_Labs::Container Docker_Labs::Cloudflare::Commands::Spec_Container(int arg
 
     int opt;
     int long_index;
-    while ((opt = getopt_long(argc, argv, "h", long_flags, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "hc:", long_flags, &long_index)) != -1) {
         switch (opt) {
         case 'h':
             std::cout << "I belive in you, you can figure it out :)";
-        case 0:
-            if (std::string(long_flags[long_index].name) == "container")
-                container_name = optarg;
+            throw "a tantrum";
+        case 'c':
+            container_name = optarg;
+            continue;
         case '?':
         default:
             std::string temp = argv[optind - 1];
@@ -159,6 +150,7 @@ Docker_Labs::Container Docker_Labs::Cloudflare::Commands::Spec_Container(int arg
                 temp.erase(0, 1);
             }
             std::cerr << "Unknown flag: " << temp << std::endl;
+            throw "a tantrum";
         }
     }
     
@@ -170,8 +162,8 @@ std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::C
 {
     static struct option long_flags[] = {
         {"help", no_argument, nullptr, 'h'},
-        {"container", required_argument, nullptr, 0},
-        {"user", required_argument, nullptr, 0},
+        {"container", required_argument, nullptr, 'c'},
+        {"user", required_argument, nullptr, 'u'},
         { nullptr, 0, nullptr, 0 }
     };
 
@@ -180,15 +172,17 @@ std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::C
 
     int opt;
     int long_index;
-    while ((opt = getopt_long(argc, argv, "h", long_flags, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "hc:u:", long_flags, &long_index)) != -1) {
         switch (opt) {
         case 'h':
             std::cout << "I belive in you, you can figure it out :)";
-        case 0:
-            if (std::string(long_flags[long_index].name) == "container")
-                container_name = optarg;
-            else if (std::string(long_flags[long_index].name) == "user")
-                user = optarg;
+            throw " a tantrum";
+        case 'c':
+            container_name = optarg;
+            continue;
+        case 'u':
+            user = optarg;
+            continue;
         case '?':
         default:
             std::string temp = argv[optind - 1];
@@ -196,6 +190,7 @@ std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::C
                 temp.erase(0, 1);
             }
             std::cerr << "Unknown flag: " << temp << std::endl;
+            throw " a tantrum";
         }
     }
     std::tuple<Container, User> cont_usr = std::tuple<Container, User>(Docker_Labs::Docker::Get_Container(container_name), User(user));
