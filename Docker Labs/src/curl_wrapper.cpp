@@ -16,46 +16,7 @@ std::size_t Curl_Wrapper::WriteCallback(char* contents, std::size_t size, std::s
 }
 
 
-std::string Curl_Wrapper::Get(const std::string& url, std::vector<std::string>& headers, std::string& request_type)
-{
-	curl_easy_reset(curl);
-
-	if (curl) {
-
-		struct curl_slist* chunk = NULL;
-		std::string responce;
-
-		for (std::string& header : headers) {
-			chunk = curl_slist_append(chunk, header.c_str());
-		}
-
-
-		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, request_type.c_str());
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responce);
-		curl_easy_setopt(curl, CURLOPT_CA_CACHE_TIMEOUT, 604800L);
-
-		res = curl_easy_perform(curl);
-		if (res != CURLE_OK) {
-			std::cerr << "Curl error: " << curl_easy_strerror(res) << "\n";
-		}
-
-		curl_slist_free_all(chunk);
-		curl_easy_reset(curl);
-
-		if (res != CURLE_OK) {
-			throw "a tantrum";
-		}
-		//curl_easy_cleanup(curl);
-
-		return responce;
-	}
-	return std::string();
-}
-
-std::string Curl_Wrapper::Post(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type)
+std::string Curl_Wrapper::Socket_Request(const std::string& url, const std::string& data, std::vector<std::string>& headers, std::string& request_type, std::string& socket)
 {
 	curl_easy_reset(curl);
 
@@ -66,11 +27,17 @@ std::string Curl_Wrapper::Post(const std::string& url, const std::string& data, 
 		for (const std::string& header : headers) {
 			chunk = curl_slist_append(chunk, header.c_str());
 		}
+		if(socker != ""){
+			curl_easy_setopt(curl, CURLOPT_SOCKET, socket);
+		}
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, request_type.c_str());
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+		
+		if(request_type == "POST" || request_type == "PUT" || request_type == "PATCH"){
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+		}
 
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responce);
@@ -93,7 +60,17 @@ std::string Curl_Wrapper::Post(const std::string& url, const std::string& data, 
 	return std::string();
 }
 
-std::string Curl_Wrapper::Get(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "GET"; return Get(url, headers, request_type); }
-std::string Curl_Wrapper::Delete(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "DELETE"; return Get(url, headers, request_type); }
-std::string Curl_Wrapper::Post(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "POST"; return Post(url, data, headers, request_type); }
-std::string Curl_Wrapper::Put(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "PUT"; return Post(url, data, headers, request_type); }
+std::string Curl_Wrapper::Web_Request(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type)
+{
+	return Curl_Wrapper::Socket_Request(url, data, headers, request_type, (std::string)"");
+}
+
+std::string Curl_Wrapper::Web_Request(const std::string& url, const std::vector<std::string>& headers, std::string& request_type)
+{
+	return Curl_Wrapper::Socket_Request(url, (std::string)"", headers, request_type, (std::string)"");
+}
+
+std::string Curl_Wrapper::Get(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "GET"; return Web_Request(url, headers, request_type); }
+std::string Curl_Wrapper::Delete(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "DELETE"; return Web_Request(url, headers, request_type); }
+std::string Curl_Wrapper::Post(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "POST"; return Web_Request(url, data, headers, request_type); }
+std::string Curl_Wrapper::Put(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "PUT"; return Web_Request(url, data, headers, request_type); }

@@ -6,6 +6,7 @@
 
 using namespace std;
 
+/*
 json Docker_Labs::Docker::CallDockerAPI(const std::string& url, const std::string& data = "", const std::string& method = "GET") {
     CURL* curl;
     CURLcode res;
@@ -66,6 +67,7 @@ json Docker_Labs::Docker::CallDockerAPI(const std::string& url, const std::strin
 
     return result;
 }
+*/
 
 namespace Docker_Labs {	
 	//Constructors
