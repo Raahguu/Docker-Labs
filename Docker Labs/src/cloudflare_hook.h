@@ -13,14 +13,17 @@ namespace Docker_Labs::Cloudflare {
 	class API_Auth {
 			friend class Cloudflared;
 		public:
-			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
-			API_Auth(std::string account_id, std::string API_token);
+			API_Auth();
+			//API_Auth(std::string account_id, std::string API_token);
+			static API_Auth Get_Auth();
 		private:
-			const std::string account_id;
-			const std::string zone_id;
-			const std::string tunnel_id;
-			const std::string API_token;
-			const std::string domain;
+			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
+			static std::string Cin();
+			const std::string ACC;
+			const std::string ZONE;
+			const std::string TUNN;
+			const std::string TKN;
+			const std::string DOMN;
 		};
 
 	class Cloudflared {

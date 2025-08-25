@@ -8,29 +8,6 @@
 #include <random>
 
 
-Docker_Labs::Cloudflare::API_Auth Docker_Labs::Get_Auth()
-{
-    std::string ACC;
-    std::string ZONE;
-    std::string TUNN;
-    std::string TKN;
-    std::string DOMN;
-
-    std::cin >> ACC;
-    std::cin >> ZONE;
-    std::cin >> TUNN;
-    std::cin >> TKN;
-    std::cin >> DOMN;
-
-    return Docker_Labs::Cloudflare::API_Auth(
-        ACC,
-        ZONE,
-        TUNN,
-        TKN,
-        DOMN
-    );
-}
-
 int Docker_Labs::Init_Handler(int argc, char* argv[])
 {
     std::random_device rd;
@@ -58,20 +35,23 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
         switch (opt) {
         case 'h':
             std::cout << "I belive in you, you can figure it out :)";
+            return 0;
         case 0:
             if (std::string(long_flags[long_index].name) == "user")
                 email = optarg;
             else if (std::string(long_flags[long_index].name) == "image")
                 image = optarg;
-            else if (std::string(long_flags[long_index].name) == "image")
+            else if (std::string(long_flags[long_index].name) == "name")
                 container_name = optarg;
+            continue;
         case '?':
         default:
             std::string temp = argv[optind - 1];
             while (!temp.empty() && temp[0] == '-') {
                 temp.erase(0, 1);
             }
-            //std::cerr << "Unknown flag: " << temp << std::endl;
+            std::cerr << "Unknown flag: " << temp << std::endl;
+            return 1;
         }
     }
 
@@ -93,8 +73,8 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
 
 
     Docker_Labs::Container container = Container(container_name, image);
-    Cloudflare::API_Auth cf_auth = Get_Auth();
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
+    Cloudflare::API_Auth cf_auth = Cloudflare::API_Auth::Get_Auth();
+    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth, false);
     cloudflared.Init_Access(container, User(email));
     return 0;
 }

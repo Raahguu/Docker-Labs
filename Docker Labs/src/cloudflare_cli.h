@@ -23,7 +23,6 @@ namespace Docker_Labs::Cloudflare::Commands {
 	int Create_Application(API_Auth cf_auth, int argc, char* argv[]);
 	int Remove_Application(API_Auth cf_auth, int argc, char* argv[]);
 
-	int Initilize_Access_Policy(API_Auth cf_auth, int argc, char* argv[]);
 	int Grant_Container(API_Auth cf_auth, int argc, char* argv[]);
 	int Revoke_Container(API_Auth cf_auth, int argc, char* argv[]);
 }
