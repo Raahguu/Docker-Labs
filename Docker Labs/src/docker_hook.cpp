@@ -106,6 +106,11 @@ Docker_Labs::Container Docker_Labs::Docker::Docker::Create_Container(std::string
 			"Image": ")" + image_name + R"(",
 			"Labels": {
 				"Docker_Labs": "true"
+			},
+			"HostConfig": {
+				"RestartPolicy": {
+					"Name": "unless-stopped"
+				}
 			}
 		})";
 
