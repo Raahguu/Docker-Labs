@@ -1,4 +1,5 @@
 #include "docker_cli.h"
+#include "docker_hook.h"
 #include <string>
 #include <map>
 #include <getopt.h>
@@ -12,6 +13,7 @@ using namespace std::string_view_literals;
 int Docker_Labs::Docker::Commands::Test_API(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
 	int returnCode = 0;	
 
+	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'}, // --help maps to 'h'
 		{"code", no_argument, nullptr, 'c'}, // --code maps to 'c'
@@ -43,7 +45,7 @@ int Docker_Labs::Docker::Commands::Test_API(Docker_Labs::Command_Interpreter com
 		}
 	}
 	
-	int result = Docker_Labs::Docker::Test_API();
+	int result = docker.Test_API();
 	
 	if (returnCode){
 		std::cout << result << std::endl;
@@ -66,6 +68,7 @@ int Docker_Labs::Docker::Commands::Test_API(Docker_Labs::Command_Interpreter com
 
 
 int Docker_Labs::Docker::Commands::Test_Container_Creation(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
+	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'}, // --help maps to 'h'
 		{"name", required_argument, nullptr, 0}, // --name
@@ -112,47 +115,49 @@ int Docker_Labs::Docker::Commands::Test_Container_Creation(Docker_Labs::Command_
 	}
 	if(name == ""){
 		std::cerr << "You must provide a name" << std::endl;
+		return 1;
 	}
 	
 	
-	Container result = Container(name, image);
-	result.Start();
+	Container result = docker.Create_Container(name, image);
+	docker.Start(result);
 	
-	std::string id = result.Get_ID();
+	std::string id = docker.Get_ID(result);
 	std::cout << "Container Id: " << id << std::endl;
-	std::string container_name = result.Get_Name();
+	std::string container_name = docker.Get_Name(result);
 	std::cout << "Container Name: " << container_name << std::endl;
-	std::string ip = result.Get_IP();
+	std::string ip = docker.Get_IP(result);
 	std::cout << "Container IP: " << ip << std::endl;
-	image = result.Get_Image();
+	image = docker.Get_Image(result);
 	std::cout << "Container Image: " << image << std::endl;
-	std::string status = result.Get_Status() ? "up" : "down";
+	std::string status = docker.Get_Status(result) ? "up" : "down";
 	std::cout << "Container Status: " << status << std::endl;
-	std::vector<std::string> networks = result.Get_Networks();
+	std::vector<std::string> networks = docker.Get_Networks(result);
 	std::cout << "Container Networks: " << std::endl;
 	for(std::string& network : networks){
 		std::cout << network << std::endl;
 	}
 	
-	result.Restart();
-	result.Stop();
+	docker.Restart(result);
+	docker.Stop(result);
 	
 	std::cout << "Checking getting the container with the name" << std::endl;
-	if(Docker_Labs::Docker::Get_Container(name).Get_ID() == result.Get_ID()){
+	if (docker.Get_Container(name).Get_ID() == docker.Get_ID(result)) {
 		std::cout << "Success!" << std::endl;
 	} else {
 		std::cout << "Failed" << std::endl;
 	}
 	
-	result.Start();
-	result.Kill();
-	result.Remove();
+	docker.Start(result);
+	docker.Kill(result);
+	docker.Remove(result);
 	
 	return 0;
 }
 
 int Docker_Labs::Docker::Commands::Test_Handler(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
 	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
+
 
 	static std::map<std::string_view, std::function<int(Docker_Labs::Command_Interpreter, int, char**)>> possible_commands = {
 		{"api"sv, Docker_Labs::Docker::Commands::Test_API},
@@ -187,8 +192,8 @@ int Docker_Labs::Docker::Commands::Help(Docker_Labs::Command_Interpreter command
 int Docker_Labs::Docker::Commands::Command_Handler(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
 	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
 
+
 	static std::map<std::string_view, std::function<int(Docker_Labs::Command_Interpreter, int, char**)>> possible_commands = {
-		{"test-api"sv, Docker_Labs::Docker::Commands::Test_API},
 		{"help"sv, Docker_Labs::Docker::Commands::Help},
 		{"test"sv, Docker_Labs::Docker::Commands::Test_Handler}
 	};
@@ -225,38 +230,3 @@ int Docker_Labs::Docker::Commands::Command_Handler(Docker_Labs::Command_Interpre
 	}
 	return 1;
 }
-
-	/*
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'}, // --help maps to 'h'
-		{"all", no_argument, nullptr, 'a'}, // --all maps to 'a'
-		{"name", required_argument, nullptr, 0}, // --name is a custom long flag
-		{nullptr, 0, nullptr, 0}
-	};
-
-	int opt;
-	int long_index = 0;
-			
-	while((opt=getopt_long(argc, argv, "ab:h", long_flags, &long_index)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "You asked for help" << std::endl;
-				break;
-			case '?':
-			default:
-				std::cout << "Unknown flag: " << (char)optopt << std::endl;
-				return 1;
-				
-			case 0: // no short flag option
-				if (std::string(long_flags[long_index].name) == "name") {
-					std::cout << "flag name with value " << optarg << std::endl;
-				}
-				continue;
-			case 'a':
-				std::cout << "flag a" << std::endl;
-				continue;
-			case 'b':
-				std::cout << "flag b with value " << optarg << std::endl;
-				continue;
-		}
-	}*/

@@ -1,34 +1,37 @@
 #include "curl_wrapper.h"
 #include <iostream>
+#include <tuple>
 
-Curl_Wrapper::Curl_Wrapper()
+Docker_Labs::Curl_Wrapper::Curl_Wrapper()
 {
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 	curl = curl_easy_init();
 }
 
-Curl_Wrapper::~Curl_Wrapper() {}
+Docker_Labs::Curl_Wrapper::~Curl_Wrapper() {}
 
-std::size_t Curl_Wrapper::WriteCallback(char* contents, std::size_t size, std::size_t nmemb, std::string* userp) {
+std::size_t Docker_Labs::Curl_Wrapper::WriteCallback(char* contents, std::size_t size, std::size_t nmemb, std::string* userp) {
 	std::string* response = static_cast<std::string*>(userp);
 	response->append(static_cast<char*>(contents), size * nmemb);
 	return size * nmemb;
 }
 
 
-std::string Curl_Wrapper::Socket_Request(const std::string& url, const std::string& data, std::vector<std::string>& headers, std::string& request_type, std::string& socket)
+std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Socket_Request(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type, std::string socket)
 {
 	curl_easy_reset(curl);
 
 	if (curl) {
-		struct curl_slist* chunk = NULL;
+		long return_code;
 		std::string responce;
+		struct curl_slist* chunk = NULL;
 
 		for (const std::string& header : headers) {
 			chunk = curl_slist_append(chunk, header.c_str());
 		}
-		if(socker != ""){
-			curl_easy_setopt(curl, CURLOPT_SOCKET, socket);
+		if(socket != ""){
+			curl_easy_setopt(curl, CURLOPT_UNIX_SOCKET_PATH, socket.c_str());
+
 		}
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
@@ -44,8 +47,12 @@ std::string Curl_Wrapper::Socket_Request(const std::string& url, const std::stri
 		curl_easy_setopt(curl, CURLOPT_CA_CACHE_TIMEOUT, 604800L);
 
 		res = curl_easy_perform(curl);
+
 		if (res != CURLE_OK) {
 			std::cerr << "Curl error: " << curl_easy_strerror(res) << "\n";
+		}
+		else {
+			curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &return_code);
 		}
 
 		curl_slist_free_all(chunk);
@@ -55,22 +62,22 @@ std::string Curl_Wrapper::Socket_Request(const std::string& url, const std::stri
 			throw "a tantrum";
 		}
 
-		return responce;
+		return std::make_tuple(return_code, responce);
 	}
-	return std::string();
+	throw "a tantrum";
 }
 
-std::string Curl_Wrapper::Web_Request(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type)
+std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Web_Request(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type)
 {
-	return Curl_Wrapper::Socket_Request(url, data, headers, request_type, (std::string)"");
+	return Docker_Labs::Curl_Wrapper::Socket_Request(url, data, headers, request_type, "");
 }
 
-std::string Curl_Wrapper::Web_Request(const std::string& url, const std::vector<std::string>& headers, std::string& request_type)
+std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Web_Request(const std::string& url, const std::vector<std::string>& headers, std::string& request_type)
 {
-	return Curl_Wrapper::Socket_Request(url, (std::string)"", headers, request_type, (std::string)"");
+	return Docker_Labs::Curl_Wrapper::Socket_Request(url, (std::string)"", headers, request_type, "");
 }
 
-std::string Curl_Wrapper::Get(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "GET"; return Web_Request(url, headers, request_type); }
-std::string Curl_Wrapper::Delete(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "DELETE"; return Web_Request(url, headers, request_type); }
-std::string Curl_Wrapper::Post(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "POST"; return Web_Request(url, data, headers, request_type); }
-std::string Curl_Wrapper::Put(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "PUT"; return Web_Request(url, data, headers, request_type); }
+std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Get(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "GET"; return Web_Request(url, headers, request_type); }
+std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Delete(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "DELETE"; return Web_Request(url, headers, request_type); }
+std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Post(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "POST"; return Web_Request(url, data, headers, request_type); }
+std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Put(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "PUT"; return Web_Request(url, data, headers, request_type); }

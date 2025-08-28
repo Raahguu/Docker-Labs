@@ -22,14 +22,15 @@ int main(int argc, char* argv[])
 		return Docker_Labs::Init_Handler(argc, argv);
 	}
 
-    if (command.Get_Partition() == "cloudflare")
+	if (command.Get_Partition() == "cloudflare")
     {
 		return Docker_Labs::Cloudflare::Commands::Command_Handler(command, argc, argv);
     }
-    
+  
     // Use this section for all docker commands
     // e.g. ./labs-cli docker <command> [<subcommand>]
-    if (command.Get_Partition() == "docker") {
+    if (command.Get_Partition() == "docker") 
+	{
     	return Docker_Labs::Docker::Commands::Command_Handler(command, argc, argv);
     }
 

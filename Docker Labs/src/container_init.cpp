@@ -1,5 +1,6 @@
 #include "container_init.h"
 #include "labs_container.h"
+#include "docker_hook.h"
 #include "labs_user.h"
 #include "cloudflare_hook.h"
 #include <string>
@@ -10,6 +11,7 @@
 
 int Docker_Labs::Init_Handler(int argc, char* argv[])
 {
+    Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(0, 35);
@@ -72,7 +74,7 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
     }
 
 
-    Docker_Labs::Container container = Container(container_name, image);
+    Docker_Labs::Container container = docker.Create_Container(container_name, image);
     Cloudflare::API_Auth cf_auth = Cloudflare::API_Auth::Get_Auth();
     Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth, false);
     cloudflared.Init_Access(container, User(email));

@@ -1,4 +1,5 @@
 #include "cloudflare_hook.h"
+#include "docker_hook.h"
 #include <iostream>
 #include <unistd.h>
 
@@ -63,7 +64,7 @@ std::vector<Docker_Labs::User> Docker_Labs::Cloudflare::Cloudflared::Fetch_Seats
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string responce = curl.Get(url, headers);
+	std::string responce = std::get<std::string>(curl.Get(url, headers));
 
 	nlohmann::json seats = nlohmann::json::parse(responce)["result"];
 	std::vector<User> users;
@@ -80,7 +81,7 @@ nlohmann::json Docker_Labs::Cloudflare::Cloudflared::Fetch_Ingress() {
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string responce = curl.Get(url, headers);
+	std::string responce = std::get<std::string>(curl.Get(url, headers));
 
 	nlohmann::json ingress_configuration = nlohmann::json::parse(responce);
 	return ingress_configuration;
@@ -94,18 +95,18 @@ nlohmann::json Docker_Labs::Cloudflare::Cloudflared::Fetch_DNS_Records() {
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string responce = curl.Get(url, headers);
+	std::string responce = std::get<std::string>(curl.Get(url, headers));
 
 	nlohmann::json records = nlohmann::json::parse(responce);
 	return records;
 }
 nlohmann::json Docker_Labs::Cloudflare::Cloudflared::Fetch_DNS_Record(Container container)
 {
-	std::string url = "https://api.cloudflare.com/client/v4/zones/" + auth.ZONE + "/dns_records?type=CNAME&proxied=true&name="+ container.Get_Name_Cache() + "-" + auth.DOMN;
+	std::string url = "https://api.cloudflare.com/client/v4/zones/" + auth.ZONE + "/dns_records?type=CNAME&proxied=true&name=" + container.Get_Name_Cache() + "-" + auth.DOMN;
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string responce = curl.Get(url, headers);
+	std::string responce = std::get<std::string>(curl.Get(url, headers));
 
 	nlohmann::json records = nlohmann::json::parse(responce);
 	return records;
@@ -115,7 +116,7 @@ nlohmann::json Docker_Labs::Cloudflare::Cloudflared::Fetch_Application(Container
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string responce = curl.Get(url, headers);
+	std::string responce = std::get<std::string>(curl.Get(url, headers));
 
 	nlohmann::json application = nlohmann::json::parse(responce);
 	return application;
@@ -132,10 +133,23 @@ nlohmann::json Docker_Labs::Cloudflare::Cloudflared::Fetch_Application_Policy(Do
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string responce = curl.Get(url, headers);
-	std::cout << responce << std::endl;
+	std::string responce = std::get<std::string>(curl.Get(url, headers));
 	nlohmann::json policies = nlohmann::json::parse(responce);
 	return policies;
+}
+
+std::vector<std::tuple<int, std::string>> Docker_Labs::Cloudflare::Cloudflared::Get_Return_Info(nlohmann::json responce) {
+	if (responce["success"]) {
+		return { std::tuple<int, std::string>(0, "Success")};
+	}
+	else {
+		nlohmann::json errors = responce["errors"];
+		std::vector<std::tuple<int, std::string>> errors_map = {};
+		for (nlohmann::json error : errors) {
+			errors_map.push_back(std::tuple<int, std::string>(error["code"], error["message"]));
+		}
+		return errors_map;
+	}
 }
 
 int Docker_Labs::Cloudflare::Cloudflared::Test_API()
@@ -147,7 +161,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Test_API()
 	std::string responce, status;
 	bool success;
 	try {
-		responce = curl.Get(url, headers);
+		responce = std::get<std::string>(curl.Get(url, headers));
 	}
 	catch (const char* msg) {
 		return 3;
@@ -173,6 +187,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Test_API()
 		return 2;
 	}
 }
+
 
 // Float mode fetching
 nlohmann::json Docker_Labs::Cloudflare::Fetch_Ingress(const API_Auth& auth)
@@ -271,9 +286,10 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_DNS_Config(Contai
 	return message_body.dump();
 }
 
-std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_Application_Config(Container container) {
+std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Add_Application_Config(Container container, std::string name) {
 	nlohmann::json message_body = "{\"type\":\"ssh\", \"session_duration\":\"12h\",\"auto_redirect_to_identity\":true,\"allow_iframe\":true}"_json;
 	message_body["domain"] = container.Get_Name_Cache() + "-" + auth.DOMN;
+	message_body["name"] = name;
 	return message_body.dump();
 }
 
@@ -284,11 +300,8 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Initial_Policy_Config
 	message_body["include"][0]["email"]["email"] = user.Get_Email();
 	return message_body.dump();
 }
-std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Grant_Policy_Config(Docker_Labs::Container container, Docker_Labs::User user)
+std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Grant_Policy_Config(Docker_Labs::Container container, Docker_Labs::User user, nlohmann::json application_policy)
 {
-	nlohmann::json application = Fetch_Application(container);
-	std::string application_id = application["result"][0]["id"];
-	nlohmann::json application_policy = Fetch_Application_Policy(container, application_id);
 	nlohmann::json result = application_policy["result"];
 
 	if (result.size() < 1) return Generate_Initial_Policy_Config(container, user);
@@ -303,12 +316,8 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Grant_Policy_Config(D
 	message_body["include"] = granted;
 	return message_body.dump();
 }
-std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Revoke_Policy_Config(Docker_Labs::Container container, Docker_Labs::User user)
+std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Revoke_Policy_Config(Docker_Labs::Container container, Docker_Labs::User user, nlohmann::json application_policy)
 {
-	nlohmann::json application = Fetch_Application(container);
-	std::string application_id = application["result"][0]["id"];
-	nlohmann::json application_policy = Fetch_Application_Policy(container);
-	std::string application_policy_id = application_policy["result"][0]["id"];
 
 	nlohmann::json message_body = "{\"decision\":\"allow\"}"_json;
 	message_body["name"] = application_policy["result"][0]["name"];
@@ -323,6 +332,7 @@ std::string Docker_Labs::Cloudflare::Cloudflared::Generate_Revoke_Policy_Config(
 
 	message_body["include"] = granted;
 	return message_body.dump();
+
 }
 
 
@@ -336,7 +346,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Create_Ingress(Container container)
 	};
 
 	std::string data = Generate_Add_Ingress_Config(container);
-	std::string responce = curl.Put(url, data, headers);
+	std::string responce = std::get<std::string>(curl.Put(url, data, headers));
 
 	if (must_cout) {
 		std::cout << "Created rule for '" + container.Get_Name_Cache() + "'" << std::endl;
@@ -352,8 +362,8 @@ int Docker_Labs::Cloudflare::Cloudflared::Remove_Ingress(Container container)
 	};
 
 	std::string data = Generate_Remove_Ingress_Config(container);
-	std::string responce = curl.Put(url, data, headers);
-	
+	std::string responce = std::get<std::string>(curl.Put(url, data, headers));
+
 	if (must_cout) {
 		std::cout << "Removed rule for '" + container.Get_Name_Cache() + "'" << std::endl;
 	}
@@ -368,7 +378,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Update_Ingress(Container container)
 	};
 
 	std::string data = Generate_Update_Ingress_Config(container);
-	std::string responce = curl.Put(url, data, headers);
+	std::string responce = std::get<std::string>(curl.Put(url, data, headers));
 
 	if (must_cout) {
 		std::cout << "Updated rule for '" + container.Get_Name_Cache() + "'" << std::endl;
@@ -385,7 +395,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Create_DNS_Record(Container container)
 	};
 
 	std::string data = Generate_Add_DNS_Config(container);
-	std::string responce = curl.Post(url, data, headers);
+	std::string responce = std::get<std::string>(curl.Post(url, data, headers));
 	return 0;
 }
 int Docker_Labs::Cloudflare::Cloudflared::Remove_DNS_Record(Container container)
@@ -397,13 +407,17 @@ int Docker_Labs::Cloudflare::Cloudflared::Remove_DNS_Record(Container container)
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string responce = curl.Delete(url, headers);
+	std::string responce = std::get<std::string>(curl.Delete(url, headers));
 	std::cout << "Removed record for '" + container.Get_Name_Cache() + "'" << std::endl;
 	std::cout << "Record ID: '" + record_id + "'" << std::endl;
 	return 0;
 }
 
-int Docker_Labs::Cloudflare::Cloudflared::Create_Application(Container container)
+int Docker_Labs::Cloudflare::Cloudflared::Create_Application(Container container) {
+	return Create_Application(container, container.Get_Name_Cache());
+}
+
+int Docker_Labs::Cloudflare::Cloudflared::Create_Application(Container container, std::string name)
 {
 	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/apps";
 	std::vector<std::string> headers = {
@@ -411,8 +425,8 @@ int Docker_Labs::Cloudflare::Cloudflared::Create_Application(Container container
 		"Authorization: Bearer " + auth.TKN
 	};
 
-	std::string data = Generate_Add_Application_Config(container);
-	std::string responce = curl.Post(url, data, headers);
+	std::string data = Generate_Add_Application_Config(container, name);
+	std::string responce = std::get<std::string>(curl.Post(url, data, headers));
 
 	nlohmann::json parsed_responce = nlohmann::json::parse(responce);
 	if (must_cout) {
@@ -428,7 +442,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Remove_Application(Container container
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string responce = curl.Delete(url, headers);
+	std::string responce = std::get<std::string>(curl.Delete(url, headers));
 	if (must_cout) {
 		std::cout << "Removed application for '" + container.Get_Name_Cache() + "'" << std::endl;
 		std::cout << "Application ID: '" + application_id + "'" << std::endl;
@@ -442,6 +456,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Initialize_Policy(Container container,
 	std::string application_id = application["result"][0]["id"];
 	return Initialize_Policy(container, user, application_id);
 }
+
 int Docker_Labs::Cloudflare::Cloudflared::Initialize_Policy(Container container, User user, std::string application_id) {
 	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/apps/" + application_id + "/policies";
 	std::vector<std::string> headers = {
@@ -449,7 +464,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Initialize_Policy(Container container,
 		"Authorization: Bearer " + auth.TKN
 	};
 	std::string data = Generate_Initial_Policy_Config(container, user);
-	std::string responce = curl.Post(url, data, headers);
+	std::string responce = std::get<std::string>(curl.Post(url, data, headers));
 	if (must_cout) {
 		std::cout << "Created access policy for '" + container.Get_Name_Cache() + "'" << std::endl;
 		std::cout << "Granted access to '" + user.Get_Email() + "' for container '" + container.Get_Name_Cache() + "'" << std::endl;
@@ -475,8 +490,8 @@ int Docker_Labs::Cloudflare::Cloudflared::Grant_Container(Container container, U
 			"Content-Type: application/json",
 			"Authorization: Bearer " + auth.TKN
 		};
-		std::string data = Generate_Grant_Policy_Config(container, user);
-		std::string responce = curl.Put(url, data, headers);
+		std::string data = Generate_Grant_Policy_Config(container, user, application_policy);
+		std::string responce = std::get<std::string>(curl.Put(url, data, headers));
 	}
 
 	if (must_cout) {
@@ -488,7 +503,7 @@ int Docker_Labs::Cloudflare::Cloudflared::Grant_Container(Container container, U
 int Docker_Labs::Cloudflare::Cloudflared::Revoke_Container(Container container, User user)
 {
 	nlohmann::json application = Cloudflared::Fetch_Application(container);
-	std::string application_id = application["result"][0]["id"];
+	std::string application_id = application["result"] [0] ["id"] ;
 	nlohmann::json application_policy = Cloudflared::Fetch_Application_Policy(container, application_id);
 	std::string application_policy_id = application_policy["result"][0]["id"];
 	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/apps/" + application_id + "/policies/" + application_policy_id;
@@ -496,21 +511,28 @@ int Docker_Labs::Cloudflare::Cloudflared::Revoke_Container(Container container, 
 		"Content-Type: application/json",
 		"Authorization: Bearer " + auth.TKN
 	};
-	std::string data = Generate_Revoke_Policy_Config(container, user);
-	std::string responce = curl.Put(url, data, headers);
+	std::string data = Generate_Revoke_Policy_Config(container, user, application_policy);
+	std::string responce = std::get<std::string>(curl.Put(url, data, headers));
 
-	if (must_cout) {
-		std::cout << "Granted access to '" + user.Get_Email() + "' for container '" + container.Get_Name_Cache() + "'" << std::endl;
+	if (std::get<int>(Get_Return_Info(responce)[0]) && must_cout) {
+		std::cout << "Revoked access to '" + user.Get_Email() + "' for container '" + container.Get_Name_Cache() + "'" << std::endl;
 		std::cout << "Application ID: '" + application_id + "'" << std::endl;
+	} else {
+		std::cout << "Failed to revoke access to '" + user.Get_Email() + "' for container '" + container.Get_Name_Cache() + "'" << std::endl;
+		std::cout << "Application ID: '" + application_id + "'" << std::endl;
+		for (std::tuple<int, std::string> err : Get_Return_Info(responce)) {
+			std::cout << "Code: " << std::get<int>(err) << "; Message: " << std::get<std::string>(err) << ";" << std::endl;
+		}
 	}
-	return 0;
+	return std::get<int>(Get_Return_Info(responce)[0]);
 }
 
 
 int Docker_Labs::Cloudflare::Cloudflared::Init_Access(Container container, User user)
 {
+	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
 	bool err_count = 0; // Let bool alg apply :)
-	container.Start();
+	docker.Start(container);
 	sleep(1);
 	container.Cache_Update();
 	std::cout << "Fetched container information." << std::endl;
@@ -519,7 +541,8 @@ int Docker_Labs::Cloudflare::Cloudflared::Init_Access(Container container, User 
 	std::cout << " - Created ingress rule." << std::endl;
 	err_count += Create_DNS_Record(container);
 	std::cout << " - Created DNS record." << std::endl;
-	err_count += Create_Application(container);
+	std::string app_name = "SSH Application for '" +user.Get_Email() + "' (" + container.Get_Name_Cache().substr(container.Get_Name_Cache().length() - 3) +")";
+	err_count += Create_Application(container, app_name);
 	std::cout << " - Created Access application." << std::endl;
 	err_count += Initialize_Policy(container, user);
 	std::cout << " - Assigned default Access policy." << std::endl;

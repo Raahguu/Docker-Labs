@@ -31,6 +31,8 @@ namespace Docker_Labs::Cloudflare {
 		Cloudflared(const API_Auth& auth);
 		Cloudflared(const API_Auth& auth, bool must_cout);
 		int Test_API();
+		std::vector<std::tuple<int, std::string>> Get_Return_Info(nlohmann::json responce);
+
 		// Seats
 		std::vector<User> Fetch_Seats();
 		//int Revoke_Seat(User user);
@@ -48,6 +50,7 @@ namespace Docker_Labs::Cloudflare {
 		// Appliaction
 		nlohmann::json Fetch_Application(Container container);
 		int Create_Application(Container container);
+		int Create_Application(Container container, std::string name);
 		int Remove_Application(Container container);
 		//// Policy
 		nlohmann::json Fetch_Application_Policy(Container container);
@@ -79,13 +82,14 @@ namespace Docker_Labs::Cloudflare {
 		// DNS data
 		std::string Generate_Add_DNS_Config(Container container);
 
+
 		// Application data
-		std::string Generate_Add_Application_Config(Container container);
+		std::string Generate_Add_Application_Config(Container container, std::string name);
 
 		// Policy data
 		std::string Generate_Initial_Policy_Config(Container container, User user);
-		std::string Generate_Grant_Policy_Config(Container container, User user);
-		std::string Generate_Revoke_Policy_Config(Container container, User user);
+		std::string Generate_Grant_Policy_Config(Container container, User user, nlohmann::json application_policy);
+		std::string Generate_Revoke_Policy_Config(Container container, User user, nlohmann::json application_policy);
 
 	};
 

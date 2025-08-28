@@ -23,16 +23,16 @@ int Docker_Labs::Cloudflare::Commands::Command_Handler(Command_Interpreter comma
     };
 
     static std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth, int, char**)>> create_commands = {
-        {"ingress", Commands::Create_Ingress},
-        {"dns", Commands::Create_DNS},
-        {"app", Commands::Create_Application},
+        {"ingress",     Commands::Create_Ingress},
+        {"dns",         Commands::Create_DNS},
+        {"app",         Commands::Create_Application},
         {"application", Commands::Create_Application}
     };
 
     static std::map<std::string, std::function<int(Docker_Labs::Cloudflare::API_Auth, int, char**)>> remove_commands = {
-        {"ingress", Commands::Remove_Ingress},
-        {"dns", Commands::Remove_DNS},
-        {"app", Commands::Remove_Application},
+        {"ingress",     Commands::Remove_Ingress},
+        {"dns",         Commands::Remove_DNS},
+        {"app",         Commands::Remove_Application},
         {"application", Commands::Remove_Application}
     };
 
@@ -125,6 +125,7 @@ int Docker_Labs::Cloudflare::Commands::Fetch_DNS_Records(API_Auth cf_auth) {
 
 Docker_Labs::Container Docker_Labs::Cloudflare::Commands::Spec_Container(int argc, char* argv[])
 {
+    Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
     static struct option long_flags[] = {
         {"help", no_argument, nullptr, 'h'},
         {"container", required_argument, nullptr, 'c'},
@@ -154,12 +155,13 @@ Docker_Labs::Container Docker_Labs::Cloudflare::Commands::Spec_Container(int arg
         }
     }
     
-    Container cont = Docker_Labs::Docker::Get_Container(container_name);
+    Container cont = docker.Get_Container(container_name);
     cont.Cache_Update();
     return cont;
 }
 std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::Commands::Spec_Container_User(int argc, char* argv[])
 {
+    Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
     static struct option long_flags[] = {
         {"help", no_argument, nullptr, 'h'},
         {"container", required_argument, nullptr, 'c'},
@@ -193,7 +195,7 @@ std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::C
             throw " a tantrum";
         }
     }
-    std::tuple<Container, User> cont_usr = std::tuple<Container, User>(Docker_Labs::Docker::Get_Container(container_name), User(user));
+    std::tuple<Container, User> cont_usr = std::tuple<Container, User>(docker.Get_Container(container_name), User(user));
     std::get<Container>(cont_usr).Cache_Update();
     return cont_usr;
 }
@@ -244,6 +246,6 @@ int Docker_Labs::Cloudflare::Commands::Grant_Container(API_Auth cf_auth, int arg
 int Docker_Labs::Cloudflare::Commands::Revoke_Container(API_Auth cf_auth, int argc, char* argv[])
 {
     std::tuple<Container, User> container_user = Spec_Container_User(argc, argv);
-    return Cloudflare::Cloudflared(cf_auth).Grant_Container(std::get<Container>(container_user), std::get<User>(container_user));
+    return Cloudflare::Cloudflared(cf_auth).Revoke_Container(std::get<Container>(container_user), std::get<User>(container_user));
 }
 

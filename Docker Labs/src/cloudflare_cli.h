@@ -2,6 +2,7 @@
 #include <tuple>
 #include "main.h"
 #include "cloudflare_hook.h"
+#include "docker_hook.h"
 
 namespace Docker_Labs::Cloudflare::Commands {
 	int Command_Handler(Command_Interpreter command, int argc, char* argv[]);
