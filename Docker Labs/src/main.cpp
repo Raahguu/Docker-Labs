@@ -7,6 +7,7 @@
 #include "docker_cli.h"
 #include "cloudflare_cli.h"
 #include "container_init.h"
+#include "container_rm.h"
 
 
 int main(int argc, char* argv[])
@@ -21,18 +22,20 @@ int main(int argc, char* argv[])
 	if (command.Get_Partition() == "new") {
 		return Docker_Labs::Init_Handler(argc, argv);
 	}
+	
+	if (command.Get_Partition() == "rm" || command.Get_Partition() == "delete") {
+		return Docker_Labs::Rm_Handler(argc, argv);
+	}
 
-	if (command.Get_Partition() == "cloudflare")
-    {
+	if (command.Get_Partition() == "cloudflare") {
 		return Docker_Labs::Cloudflare::Commands::Command_Handler(command, argc, argv);
-    }
-  
-    // Use this section for all docker commands
-    // e.g. ./labs-cli docker <command> [<subcommand>]
-    if (command.Get_Partition() == "docker") 
-	{
-    	return Docker_Labs::Docker::Commands::Command_Handler(command, argc, argv);
-    }
+	}
+	
+	// Use this section for all docker commands
+	// e.g. ./labs-cli docker <command> [<subcommand>]
+	if (command.Get_Partition() == "docker") {
+    		return Docker_Labs::Docker::Commands::Command_Handler(command, argc, argv);
+    	}
 
 }
 

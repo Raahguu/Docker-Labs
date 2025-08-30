@@ -139,8 +139,9 @@ Docker_Labs::Container Docker_Labs::Cloudflare::Commands::Spec_Container(int arg
     while ((opt = getopt_long(argc, argv, "hc:", long_flags, &long_index)) != -1) {
         switch (opt) {
         case 'h':
-            std::cout << "I belive in you, you can figure it out :)";
-            throw "a tantrum";
+            std::cout << "-h, --help: shows this popup" << std::endl;
+            std::cout << "-c, --container: [Required] specifies the name of the container" << std::endl;
+            throw 0;
         case 'c':
             container_name = optarg;
             continue;
@@ -151,8 +152,13 @@ Docker_Labs::Container Docker_Labs::Cloudflare::Commands::Spec_Container(int arg
                 temp.erase(0, 1);
             }
             std::cerr << "Unknown flag: " << temp << std::endl;
-            throw "a tantrum";
+            throw 0;
         }
+    }
+    
+    if (container_name == "") {
+    	std::cerr << "You must specify the container name" << std::endl;
+    	throw 0;
     }
     
     Container cont = docker.Get_Container(container_name);
@@ -177,8 +183,10 @@ std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::C
     while ((opt = getopt_long(argc, argv, "hc:u:", long_flags, &long_index)) != -1) {
         switch (opt) {
         case 'h':
-            std::cout << "I belive in you, you can figure it out :)";
-            throw " a tantrum";
+            std::cout << "-h ,--help: Shows this popup" << std::endl;
+            std::cout << "-c, --container: [Required] Specifies the container name" << std::endl;
+            std::cout << "-u, --user: [Required] Specify the email of the user" << std::endl;
+            throw 0;
         case 'c':
             container_name = optarg;
             continue;
@@ -192,9 +200,19 @@ std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::C
                 temp.erase(0, 1);
             }
             std::cerr << "Unknown flag: " << temp << std::endl;
-            throw " a tantrum";
+            throw 0;
         }
     }
+    
+    if (container_name == "") {
+    	std::cerr << "must specify a container name" << std::endl;
+    	throw 0;
+    }
+    if (user == "") {
+    	std::cerr << "must specify a user" << std::endl;
+    	throw 0;
+    }
+    
     std::tuple<Container, User> cont_usr = std::tuple<Container, User>(docker.Get_Container(container_name), User(user));
     std::get<Container>(cont_usr).Cache_Update();
     return cont_usr;

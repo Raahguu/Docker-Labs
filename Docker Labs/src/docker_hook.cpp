@@ -204,16 +204,12 @@ int Docker_Labs::Docker::Docker::Kill(Docker_Labs::Container container)
 
 int Docker_Labs::Docker::Docker::Remove(Docker_Labs::Container container)
 {
-	std::string url = "/containers/" + Get_ID(container);
+	std::string url = "/containers/" + Get_ID(container) + "?force=true";
 	json response = CallDockerAPI(url, "", "DELETE");
 
 	if (response["httpCode"] == 400 || response["httpCode"] == 404 || response["httpCode"] == 500) {
 		std::cout << "Error " << response["httpCode"] << " deleting container " << Get_Name(container) << ": " << response["body"]["message"] << std::endl;
 		return response["httpCode"];
-	}
-	if (response["httpCode"] == 409) {
-		std::cout << "Container " << Get_Name(container) << " was running and so cannot be removed" << std::endl;
-		return 409;
 	}
 
 	std::cout << "Container successfully removed" << std::endl;

@@ -24,15 +24,13 @@ int Docker_Labs::Docker::Commands::Test_API(Docker_Labs::Command_Interpreter com
 	while((opt=getopt_long(argc, argv, "hc", long_flags, nullptr)) != -1) {
 		switch (opt) {
 			case 'h':
-				std::cout << "test-api:\n\tTests that the HTTP API requests for docker are working" << std::endl;
+				std::cout << "Tests that the HTTP API requests for docker are working" << std::endl;
 				std::cout << "Available flags:" << std::endl;
-				std::cout << "-h, --help\t\tProvides help on what flags this command offers" << std::endl;
-				std::cout << "-c, --code\t\tOutputs the exact HTTP code the API returns with rather then a human readable message" << std::endl;
+				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
+				std::cout << "\t-c, --code: Outputs the exact HTTP code the API returns with rather then a human readable message" << std::endl;
 				return 0;
 			case 'c':
 				returnCode = 1;
-				continue;
-			case 0:
 				continue;
 			case '?':
 			default:
@@ -67,12 +65,12 @@ int Docker_Labs::Docker::Commands::Test_API(Docker_Labs::Command_Interpreter com
 }
 
 
-int Docker_Labs::Docker::Commands::Test_Container_Creation(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
+int Docker_Labs::Docker::Commands::Test_Container_Control(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
 	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
 	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'}, // --help maps to 'h'
-		{"name", required_argument, nullptr, 0}, // --name
-		{"image", required_argument, nullptr, 0},
+		{"help", no_argument, nullptr, 'h'},
+		{"name", required_argument, nullptr, 'n'}, 
+		{"image", required_argument, nullptr, 'i'},
 		{nullptr, 0, nullptr, 0}
 	};
 	
@@ -80,23 +78,20 @@ int Docker_Labs::Docker::Commands::Test_Container_Creation(Docker_Labs::Command_
 	std::string image = "";
 	
 	int opt;
-	int long_index;
-	while((opt=getopt_long(argc, argv, "h", long_flags, &long_index)) != -1) {
+	while((opt=getopt_long(argc, argv, "hn:i:", long_flags, nullptr)) != -1) {
 		switch (opt) {
 			case 'h':
-				std::cout << "test-container-creation:\n\tTests if the container creation is working correctly with docker. Should create a container" << std::endl;
+				std::cout << "Tests if the container control commands are working correctly" << std::endl;
 				std::cout << "Available flags:" << std::endl;
-				std::cout << "-h, --help\t\tProvides help on what flags this command offers" << std::endl;
-				std::cout << "--name\t\t[Required] Lets you change the exact name of the container" << std::endl;
-				std::cout << "--image\t\t[Required] Lets you change the exact image of the container" << std::endl;
+				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
+				std::cout << "\t--n, -name: [Required] Lets you change the exact name of the container" << std::endl;
+				std::cout << "\t-i, --image: [Required] Lets you change the exact image of the container" << std::endl;
 				return 0;
-			case 0: // no short flag option
-				if (std::string(long_flags[long_index].name) == "name") {
-					name = optarg;
-				}
-				else if (std::string(long_flags[long_index].name) == "image") {
-					image = optarg;
-				}
+			case 'n': 
+				name = optarg;
+				continue;
+			case 'i':
+				image = optarg;
 				continue;
 			case '?':
 			default:
@@ -161,7 +156,7 @@ int Docker_Labs::Docker::Commands::Test_Handler(Docker_Labs::Command_Interpreter
 
 	static std::map<std::string_view, std::function<int(Docker_Labs::Command_Interpreter, int, char**)>> possible_commands = {
 		{"api"sv, Docker_Labs::Docker::Commands::Test_API},
-		{"container-creation"sv, Docker_Labs::Docker::Commands::Test_Container_Creation}
+		{"container-control"sv, Docker_Labs::Docker::Commands::Test_Container_Control}
 	};
 
 	auto it = possible_commands.find(command.Get_SubCommand());
@@ -180,10 +175,10 @@ int Docker_Labs::Docker::Commands::Help(Docker_Labs::Command_Interpreter command
 	std::cout << "./labs-cli docker <command> [<subcommand>] [<flags>]" << std::endl;
 	std::cout << std::endl;
 	std::cout << "The current available commands are:" << std::endl;
-	std::cout << "\thelp\t-\tDisplays this help message" << std::endl;
+	std::cout << "\thelp - Displays this help message" << std::endl;
 	std::cout << "\ttest - group of commands for testing thr program works correctly" << std::endl;
-	std::cout << "\t\tapi\t-\tTests that the HTTP API requests for docker are working" << std::endl;
-	std::cout << "\t\tcontainer-creation\t-\tTests if the container creation is working correctly with docker. Should create a container" << std::endl;
+	std::cout << "\t\tapi - Tests that the HTTP API requests for docker are working" << std::endl;
+	std::cout << "\t\tcontainer-control - Tests if the container controls are working" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Run './labs-cli docker <command> --help' for more info on a command" << std::endl;
 	return 0;

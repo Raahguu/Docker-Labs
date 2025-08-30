@@ -21,9 +21,9 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
 
     static struct option long_flags[] = {
         {"help", no_argument, nullptr, 'h'},
-        {"user", required_argument, nullptr, 0},
-        {"image", required_argument, nullptr, 0},
-        {"name", required_argument, nullptr, 0},
+        {"user", required_argument, nullptr, 'u'},
+        {"image", required_argument, nullptr, 'i'},
+        {"name", required_argument, nullptr, 'n'},
         { nullptr, 0, nullptr, 0 }
     };
 
@@ -33,17 +33,22 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
 
     int opt;
     int long_index;
-    while ((opt = getopt_long(argc, argv, "h", long_flags, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "hu:i:n:", long_flags, &long_index)) != -1) {
         switch (opt) {
         case 'h':
-            std::cout << "I belive in you, you can figure it out :)";
+            std::cout << "A command used to create a container and setup the cloudflare rules for it in one." << std::endl;
+            std::cout << "\t-h, --help: used to show this (hopfully) helpful popup about how to use this command" << std::endl;
+            std::cout << "\t-u --user: [Required] provide an email that the container by default allows access to" << std::endl;
+            std::cout << "\t-i --image: [Required] provide the image that the container should be created from" << std::endl;
+            std::cout << "\t-n, --name: used to set a custome name for a container" << std::endl;
             return 0;
-        case 0:
-            if (std::string(long_flags[long_index].name) == "user")
-                email = optarg;
-            else if (std::string(long_flags[long_index].name) == "image")
-                image = optarg;
-            else if (std::string(long_flags[long_index].name) == "name")
+        case 'u':
+        	email = optarg;
+        	continue;
+        case 'i':
+        	image = optarg;
+        	continue;
+        case 'n':
                 container_name = optarg;
             continue;
         case '?':
@@ -56,8 +61,17 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
             return 1;
         }
     }
+    
+    if (email == ""){
+    	std::cerr << "You must provide an email";
+    	return 1;
+    }
+    if (image == ""){
+    	std::cerr << "You must provide an image";
+    	return 1;
+    }
 
-    if (container_name.size() == 0) {
+    if (container_name == "") {
         for (char c : email) {
             if (std::isalnum(static_cast<unsigned char>(c))) {
                 container_name.push_back(std::tolower(static_cast<unsigned char>(c)));
