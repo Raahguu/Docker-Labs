@@ -183,7 +183,7 @@ std::tuple<Docker_Labs::Container, Docker_Labs::User> Docker_Labs::Cloudflare::C
     while ((opt = getopt_long(argc, argv, "hc:u:", long_flags, &long_index)) != -1) {
         switch (opt) {
         case 'h':
-            std::cout << "-h ,--help: Shows this popup" << std::endl;
+            std::cout << "-h, --help: Shows this popup" << std::endl;
             std::cout << "-c, --container: [Required] Specifies the container name" << std::endl;
             std::cout << "-u, --user: [Required] Specify the email of the user" << std::endl;
             throw 0;

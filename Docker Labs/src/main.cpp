@@ -26,6 +26,10 @@ int main(int argc, char* argv[])
 	if (command.Get_Partition() == "rm" || command.Get_Partition() == "delete") {
 		return Docker_Labs::Rm_Handler(argc, argv);
 	}
+	
+	if (command.Get_Partition() == "nuke"){
+		return Docker_Labs::Nuke(argc, argv);
+	}
 
 	if (command.Get_Partition() == "cloudflare") {
 		return Docker_Labs::Cloudflare::Commands::Command_Handler(command, argc, argv);
