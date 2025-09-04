@@ -1,18 +1,10 @@
-#include "global_cli.h"
-#include "labs_container.h"
-#include "docker_hook.h"
-#include "labs_user.h"
-#include "cloudflare_hook.h"
-#include "main.h"
-#include <string>
-#include <iostream>
-#include <getopt.h>
 #include <random>
+#include "global_cli.h"
 
 int Docker_Labs::Labs_CLI::Global_Handler(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {
     Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
-    Docker_Labs::Cloudflare::API_Auth cf_auth = Cloudflare::API_Auth::Get_Auth();
-    Docker_Labs::Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth, false);
+    Docker_Labs::Cloudflare::API_Auth cf_auth = Docker_Labs::Cloudflare::API_Auth::Get_Auth();
+    Docker_Labs::Cloudflare::Cloudflared cloudflared = Docker_Labs::Cloudflare::Cloudflared(cf_auth, false);
     bool keep_container = false;
 
     static struct option long_flags[] = {

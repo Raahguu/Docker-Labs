@@ -1,6 +1,6 @@
+#include <unistd.h>
 #include "cloudflare_cli_tests.h"
 #include "cloudflare_cli.h"
-#include <iostream>
 
 int Docker_Labs::Labs_CLI::Cloudflare::Test_API(Docker_Labs::Cloudflare::API_Auth cf_auth) {
     int responce_code = Docker_Labs::Cloudflare::Test_API(cf_auth);
@@ -46,7 +46,7 @@ int Docker_Labs::Labs_CLI::Cloudflare::Test_DNS(Docker_Labs::Cloudflare::API_Aut
     cloudflared.Create_DNS_Record(container);
     std::cout << "Waiting 1 second for lookup..." << std::endl;
     sleep(1);
-    Labs_CLI::Cloudflare::Fetch_DNS_Records(cf_auth);
+    Docker_Labs::Labs_CLI::Cloudflare::Fetch_DNS_Records(cf_auth);
     std::cout << "Confirm the bogus record is in the list above." << std::endl << std::endl;
     std::cout << "Waiting 9 seconds before removal..." << std::endl;
     sleep(9);

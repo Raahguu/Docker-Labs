@@ -1,59 +1,58 @@
 #pragma once
+#include <curl/curl.h>
 #include "curl_wrapper.h"
 #include "labs_user.h"
 #include "labs_container.h"
-#include <string>
-#include "nlohmann/json.hpp"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 namespace Docker_Labs::Cloudflare {
-
-	class Cloudflared;
-
 	class API_Auth {
-			friend class Cloudflared;
-		public:
-			API_Auth();
-			//API_Auth(std::string account_id, std::string API_token);
-			static API_Auth Get_Auth();
-		private:
-			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
-			static std::string Cin();
-			const std::string ACC;
-			const std::string ZONE;
-			const std::string TUNN;
-			const std::string TKN;
-			const std::string DOMN;
-		};
+		friend class Cloudflared;
+	public:
+		API_Auth();
+		//API_Auth(std::string account_id, std::string API_token);
+		static API_Auth Get_Auth();
+	private:
+		API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
+		static std::string Cin();
+		const std::string ACC;
+		const std::string ZONE;
+		const std::string TUNN;
+		const std::string TKN;
+		const std::string DOMN;
+	};
 
 	class Cloudflared {
 	public:
 		Cloudflared(const API_Auth& auth);
 		Cloudflared(const API_Auth& auth, bool must_cout);
 		int Test_API();
-		std::vector<std::tuple<int, std::string>> Get_Return_Info(nlohmann::json responce);
+		std::vector<std::tuple<int, std::string>> Get_Return_Info(json responce);
 
 		// Seats
 		std::vector<User> Fetch_Seats();
 		//int Revoke_Seat(User user);
 		// Ingress
-		nlohmann::json Fetch_Ingress();
-		nlohmann::json Fetch_Ingress_Config();
+		json Fetch_Ingress();
+		json Fetch_Ingress_Config();
 		int Create_Ingress(Container container);
 		int Remove_Ingress(Container container);
 		int Update_Ingress(Container container);
 		// DNS
-		nlohmann::json Fetch_DNS_Records();
-		nlohmann::json Fetch_DNS_Record(Container container);
+		json Fetch_DNS_Records();
+		json Fetch_DNS_Record(Container container);
 		int Create_DNS_Record(Container container);
 		int Remove_DNS_Record(Container container);
 		// Appliaction
-		nlohmann::json Fetch_Application(Container container);
+		json Fetch_Application(Container container);
 		int Create_Application(Container container);
 		int Create_Application(Container container, std::string name);
 		int Remove_Application(Container container);
 		//// Policy
-		nlohmann::json Fetch_Application_Policy(Container container);
-		nlohmann::json Fetch_Application_Policy(Container container, std::string application_id);
+		json Fetch_Application_Policy(Container container);
+		json Fetch_Application_Policy(Container container, std::string application_id);
 		int Initialize_Policy(Container container, User user);
 		int Initialize_Policy(Container container, User user, std::string application_id);
 		int Grant_Container(Container container, User user);
@@ -87,8 +86,8 @@ namespace Docker_Labs::Cloudflare {
 
 		// Policy data
 		std::string Generate_Initial_Policy_Config(Container container, User user);
-		std::string Generate_Grant_Policy_Config(Container container, User user, nlohmann::json application_policy);
-		std::string Generate_Revoke_Policy_Config(Container container, User user, nlohmann::json application_policy);
+		std::string Generate_Grant_Policy_Config(Container container, User user, json application_policy);
+		std::string Generate_Revoke_Policy_Config(Container container, User user, json application_policy);
 
 	};
 
@@ -96,6 +95,6 @@ namespace Docker_Labs::Cloudflare {
 
 	std::vector<User> Fetch_Seats(const API_Auth& auth);
 
-	nlohmann::json Fetch_Ingress(const API_Auth& auth);
-	nlohmann::json Fetch_DNS_Records(const API_Auth& auth);
+	json Fetch_Ingress(const API_Auth& auth);
+	json Fetch_DNS_Records(const API_Auth& auth);
 }

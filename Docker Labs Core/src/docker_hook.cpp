@@ -1,5 +1,7 @@
-#include "docker_hook.h"
 #include <iostream>
+#include "docker_hook.h"
+#include "curl_wrapper.h"
+
 
 Docker_Labs::Docker::Docker::Docker()
 {

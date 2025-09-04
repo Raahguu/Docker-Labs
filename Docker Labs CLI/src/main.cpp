@@ -1,13 +1,8 @@
 ﻿// Docker Labs.cpp : Defines the entry point for the application.
 #include "main.h"
-#include "cloudflare_hook.h"
-#include "labs_user.h"
-#include <iostream>
-#include "labs_container.h"
-#include "docker_cli.h"
-#include "cloudflare_cli.h"
 #include "global_cli.h"
-
+#include "cloudflare_cli.h"
+#include "docker_cli.h"
 
 int main(int argc, char* argv[])
 {

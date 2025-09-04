@@ -1,14 +1,12 @@
-#include "curl_wrapper.h"
 #include <iostream>
 #include <tuple>
+#include "curl_wrapper.h"
 
 Docker_Labs::Curl_Wrapper::Curl_Wrapper()
 {
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 	curl = curl_easy_init();
 }
-
-Docker_Labs::Curl_Wrapper::~Curl_Wrapper() {}
 
 std::size_t Docker_Labs::Curl_Wrapper::WriteCallback(char* contents, std::size_t size, std::size_t nmemb, std::string* userp) {
 	std::string* response = static_cast<std::string*>(userp);

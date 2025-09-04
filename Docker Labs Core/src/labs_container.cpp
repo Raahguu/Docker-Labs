@@ -1,9 +1,5 @@
 #include "labs_container.h"
-#include "curl_wrapper.h"
 #include "docker_hook.h"
-#include <iostream>
-#include <string>
-#include <curl/curl.h>
 
 namespace Docker_Labs {
 	//Constructors

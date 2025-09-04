@@ -1,9 +1,14 @@
 ﻿// Docker Labs.h : Include file for standard system include files,
 // or project specific include files.
-
 #pragma once
 #include <string>
 #include <vector>
+#include <map>
+#include <functional>
+#include <iostream>
+#include <getopt.h>
+
+
 
 namespace Docker_Labs::Labs_CLI {
 	class Command_Interpreter {

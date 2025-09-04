@@ -1,7 +1,7 @@
-#include <iostream>
 #include "cloudflare_cli.h"
 #include "cloudflare_cli_tests.h"
-#include <getopt.h>
+#include "cloudflare_hook.h"
+#include "docker_hook.h"
 
 int Docker_Labs::Labs_CLI::Cloudflare::Command_Handler(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {
     Docker_Labs::Cloudflare::API_Auth cf_auth = Docker_Labs::Cloudflare::API_Auth::Get_Auth();

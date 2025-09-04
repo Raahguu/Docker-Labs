@@ -1,11 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "labs_user.h"
-#include "curl_wrapper.h"
-#include <nlohmann/json.hpp>		
-
-using json = nlohmann::json;
 
 namespace Docker_Labs {
 

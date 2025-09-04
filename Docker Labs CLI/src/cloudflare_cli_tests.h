@@ -1,4 +1,5 @@
 #pragma once
+#include "main.h"
 #include "cloudflare_hook.h"
 
 namespace Docker_Labs::Labs_CLI::Cloudflare {

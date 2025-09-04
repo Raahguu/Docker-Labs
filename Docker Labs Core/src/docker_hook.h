@@ -1,5 +1,9 @@
 #pragma once
 #include "labs_container.h"
+#include "curl_wrapper.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 namespace Docker_Labs::Docker {
 	class Docker;

@@ -1,14 +1,5 @@
 #include "docker_cli.h"
 #include "docker_hook.h"
-#include <string>
-#include <map>
-#include <getopt.h>
-#include <iostream>
-#include <vector>
-#include "labs_container.h"
-
-using json = nlohmann::json;
-using namespace std::string_view_literals;
 
 int Docker_Labs::Labs_CLI::Docker::Test_API(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	int returnCode = 0;	
@@ -158,8 +149,8 @@ int Docker_Labs::Labs_CLI::Docker::Test_Handler(Docker_Labs::Labs_CLI::Command_I
 
 
 	static std::map<std::string_view, std::function<int(Docker_Labs::Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
-		{"api"sv, Docker_Labs::Labs_CLI::Docker::Test_API},
-		{"container-control"sv, Docker_Labs::Labs_CLI::Docker::Test_Container_Control}
+		{"api", Docker_Labs::Labs_CLI::Docker::Test_API},
+		{"container-control", Docker_Labs::Labs_CLI::Docker::Test_Container_Control}
 	};
 
 	auto it = possible_commands.find(command.Get_SubCommand());
@@ -370,12 +361,12 @@ int Docker_Labs::Docker::Commands::Command_Handler(Docker_Labs::Command_Interpre
 
 
 	static std::map<std::string_view, std::function<int(Docker_Labs::Command_Interpreter, int, char**)>> possible_commands = {
-		{"help"sv, Docker_Labs::Docker::Commands::Help},
-		{"test"sv, Docker_Labs::Docker::Commands::Test_Handler},
-		{"start"sv, Docker_Labs::Docker::Commands::Start},
-		{"stop"sv, Docker_Labs::Docker::Commands::Stop},
-		{"restart"sv, Docker_Labs::Docker::Commands::Restart},
-		{"reset"sv, Docker_Labs::Docker::Commands::Reset}
+		{"help", Docker_Labs::Docker::Commands::Help},
+		{"test", Docker_Labs::Docker::Commands::Test_Handler},
+		{"start", Docker_Labs::Docker::Commands::Start},
+		{"stop", Docker_Labs::Docker::Commands::Stop},
+		{"restart", Docker_Labs::Docker::Commands::Restart},
+		{"reset", Docker_Labs::Docker::Commands::Reset}
 	};
 
 	static struct option long_flags[] = {

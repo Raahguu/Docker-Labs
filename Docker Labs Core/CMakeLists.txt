@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.10)
 project(DockerLabsCore)
 
 file(GLOB SOURCES "src/*.cpp")
-file(GLOB HEADERS "src/*.h")
+file(GLOB HEADERS "src/*.h" "src/*.hpp")
 set(HEADER_DEST "include")
 
 #message(STATUS "lalalall" ${SOURCES} ${HEADERS})
