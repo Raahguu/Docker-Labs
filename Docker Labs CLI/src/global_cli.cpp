@@ -1,14 +1,15 @@
-#include "labs_global.h"
+#include "global_cli.h"
 #include "labs_container.h"
 #include "docker_hook.h"
 #include "labs_user.h"
 #include "cloudflare_hook.h"
+#include "main.h"
 #include <string>
 #include <iostream>
 #include <getopt.h>
 #include <random>
 
-int Docker_Labs::Global_Handler(Command_Interpreter command, int argc, char* argv[]) {
+int Docker_Labs::Labs_CLI::Global_Handler(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {
     Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
     Docker_Labs::Cloudflare::API_Auth cf_auth = Cloudflare::API_Auth::Get_Auth();
     Docker_Labs::Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth, false);
@@ -88,11 +89,11 @@ int Docker_Labs::Global_Handler(Command_Interpreter command, int argc, char* arg
     return 1;
 }
 
-int Docker_Labs::Init_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, std::string email, std::string image) {
+int Docker_Labs::Labs_CLI::Init_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, std::string email, std::string image) {
     return Init_Handler(cloudflared, docker, email, image, "");
 }
 
-int Docker_Labs::Init_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, std::string email, std::string image, std::string container_name)
+int Docker_Labs::Labs_CLI::Init_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, std::string email, std::string image, std::string container_name)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -133,7 +134,7 @@ int Docker_Labs::Init_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, 
     return 0;
 }
 
-int Docker_Labs::Rm_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, std::string container_name, bool keep_container)
+int Docker_Labs::Labs_CLI::Rm_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, std::string container_name, bool keep_container)
 {
     std::cout << container_name << std::endl;
     Docker_Labs::Container container = docker.Get_Container(container_name);
@@ -152,7 +153,7 @@ int Docker_Labs::Rm_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Do
     return 0;
 }
 
-int Docker_Labs::Nuke(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, bool keep_containers)
+int Docker_Labs::Labs_CLI::Nuke(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, bool keep_containers)
 {
 
 
@@ -161,7 +162,7 @@ int Docker_Labs::Nuke(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_L
     bool err = false;
 
     for (Docker_Labs::Container container : containers) {
-        err += (bool)Docker_Labs::Rm_Handler(cloudflared, docker, container.Get_Name_Cache(), keep_containers);
+        err += (bool)Docker_Labs::Labs_CLI::Rm_Handler(cloudflared, docker, container.Get_Name_Cache(), keep_containers);
     }
 
     return err;

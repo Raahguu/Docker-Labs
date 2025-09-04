@@ -2,7 +2,7 @@
 #include "cloudflare_cli.h"
 #include <iostream>
 
-int Docker_Labs::Cloudflare::Commands::Test_API(API_Auth cf_auth) {
+int Docker_Labs::Labs_CLI::Cloudflare::Test_API(Docker_Labs::Cloudflare::API_Auth cf_auth) {
     int responce_code = Docker_Labs::Cloudflare::Test_API(cf_auth);
     switch (responce_code)
     {
@@ -21,9 +21,9 @@ int Docker_Labs::Cloudflare::Commands::Test_API(API_Auth cf_auth) {
     }
 }
 
-int Docker_Labs::Cloudflare::Commands::Test_Ingress(API_Auth cf_auth)
+int Docker_Labs::Labs_CLI::Cloudflare::Test_Ingress(Docker_Labs::Cloudflare::API_Auth cf_auth)
 {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
+    Docker_Labs::Cloudflare::Cloudflared cloudflared = Docker_Labs::Cloudflare::Cloudflared(cf_auth);
     std::cout << "Creating bogus ingress rule." << std::endl;
     Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     cloudflared.Create_Ingress(container);
@@ -38,15 +38,15 @@ int Docker_Labs::Cloudflare::Commands::Test_Ingress(API_Auth cf_auth)
 
     return 0;
 }
-int Docker_Labs::Cloudflare::Commands::Test_DNS(API_Auth cf_auth)
+int Docker_Labs::Labs_CLI::Cloudflare::Test_DNS(Docker_Labs::Cloudflare::API_Auth cf_auth)
 {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
+    Docker_Labs::Cloudflare::Cloudflared cloudflared = Docker_Labs::Cloudflare::Cloudflared(cf_auth);
     std::cout << "Creating bogus DNS record..." << std::endl;
     Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     cloudflared.Create_DNS_Record(container);
     std::cout << "Waiting 1 second for lookup..." << std::endl;
     sleep(1);
-    Commands::Fetch_DNS_Records(cf_auth);
+    Labs_CLI::Cloudflare::Fetch_DNS_Records(cf_auth);
     std::cout << "Confirm the bogus record is in the list above." << std::endl << std::endl;
     std::cout << "Waiting 9 seconds before removal..." << std::endl;
     sleep(9);
@@ -55,9 +55,9 @@ int Docker_Labs::Cloudflare::Commands::Test_DNS(API_Auth cf_auth)
 
     return 0;
 }
-int Docker_Labs::Cloudflare::Commands::Test_Application(API_Auth cf_auth)
+int Docker_Labs::Labs_CLI::Cloudflare::Test_Application(Docker_Labs::Cloudflare::API_Auth cf_auth)
 {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
+    Docker_Labs::Cloudflare::Cloudflared cloudflared = Docker_Labs::Cloudflare::Cloudflared(cf_auth);
     Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     std::cout << "Creating bogus Access Application..." << std::endl;
     cloudflared.Create_Application(container);
@@ -70,9 +70,9 @@ int Docker_Labs::Cloudflare::Commands::Test_Application(API_Auth cf_auth)
 }
 
 
-int Docker_Labs::Cloudflare::Commands::Test_Initialize(API_Auth cf_auth)
+int Docker_Labs::Labs_CLI::Cloudflare::Test_Initialize(Docker_Labs::Cloudflare::API_Auth cf_auth)
 {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
+    Docker_Labs::Cloudflare::Cloudflared cloudflared = Docker_Labs::Cloudflare::Cloudflared(cf_auth);
     Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     cloudflared.Create_Ingress(container);
     cloudflared.Create_DNS_Record(container);
@@ -87,8 +87,8 @@ int Docker_Labs::Cloudflare::Commands::Test_Initialize(API_Auth cf_auth)
     return 0;
 }
 
-int Docker_Labs::Cloudflare::Commands::Test_Grant_Policy(API_Auth cf_auth) {
-    Cloudflare::Cloudflared cloudflared = Cloudflare::Cloudflared(cf_auth);
+int Docker_Labs::Labs_CLI::Cloudflare::Test_Grant_Policy(Docker_Labs::Cloudflare::API_Auth cf_auth) {
+    Docker_Labs::Cloudflare::Cloudflared cloudflared = Docker_Labs::Cloudflare::Cloudflared(cf_auth);
     Container container = Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     User add = User("joshua.finlayson@cassa.au");
     User remove = User("laith.striegher@cassa.au");

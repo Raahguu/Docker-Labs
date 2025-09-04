@@ -1,5 +1,4 @@
 #include "labs_container.h"
-#include "main.h"
 #include "curl_wrapper.h"
 #include "docker_hook.h"
 #include <iostream>

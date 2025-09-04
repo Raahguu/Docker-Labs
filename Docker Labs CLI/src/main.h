@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace Docker_Labs {
+namespace Docker_Labs::Labs_CLI {
 	class Command_Interpreter {
 	public:
 		Command_Interpreter(int argc, char* argv[]);

@@ -6,6 +6,7 @@
 cmake_minimum_required (VERSION 3.10)
 project ("Docker Labs")
 
+
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
@@ -15,4 +16,5 @@ endif()
 
 
 # Include sub-projects.
-add_subdirectory ("Docker Labs")
+add_subdirectory ("Docker Labs CLI")
+add_subdirectory ("Docker Labs Core")

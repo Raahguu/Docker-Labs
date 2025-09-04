@@ -1,7 +1,9 @@
+#pragma once
 #include "cloudflare_hook.h"
 #include "docker_hook.h"
+#include "main.h"
 
-namespace Docker_Labs {
+namespace Docker_Labs::Labs_CLI {
 	int Global_Handler(Command_Interpreter command, int argc, char* argv[]);
 	int Init_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, std::string email, std::string image);
 	int Init_Handler(Docker_Labs::Cloudflare::Cloudflared cloudflared, Docker_Labs::Docker::Docker docker, std::string email, std::string image, std::string container_name);

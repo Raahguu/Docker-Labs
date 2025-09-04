@@ -2,7 +2,6 @@
 #include "curl_wrapper.h"
 #include "labs_user.h"
 #include "labs_container.h"
-#include "main.h"
 #include <string>
 #include "nlohmann/json.hpp"
 

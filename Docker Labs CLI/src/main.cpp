@@ -6,33 +6,30 @@
 #include "labs_container.h"
 #include "docker_cli.h"
 #include "cloudflare_cli.h"
-#include "labs_global.h"
+#include "global_cli.h"
 
 
 int main(int argc, char* argv[])
 {
-	using namespace Docker_Labs;
-	using namespace std::literals;
-
-	Docker_Labs::Command_Interpreter command = Docker_Labs::Command_Interpreter(argc, argv);
+	Docker_Labs::Labs_CLI::Command_Interpreter command = Docker_Labs::Labs_CLI::Command_Interpreter(argc, argv);
 
 	//Section for cloudflare commands
 	//./labs-cli cloudflare <command> [<subcommand>]
 
 	if (command.Get_Partition() == "cloudflare") {
-		return Docker_Labs::Cloudflare::Commands::Command_Handler(command, argc, argv);
+		return Docker_Labs::Labs_CLI::Cloudflare::Command_Handler(command, argc, argv);
 	}
 	else if (command.Get_Partition() == "docker") {
-		return Docker_Labs::Docker::Commands::Command_Handler(command, argc, argv);
+		return Docker_Labs::Labs_CLI::Docker::Command_Handler(command, argc, argv);
 	}
 	else {
-		return Docker_Labs::Global_Handler(command, argc, argv);
+		return Docker_Labs::Labs_CLI::Global_Handler(command, argc, argv);
 	}
 
 }
 
 
-namespace Docker_Labs {
+namespace Docker_Labs::Labs_CLI {
 
 
 	Command_Interpreter::Command_Interpreter(int argc, char* argv[]) {
