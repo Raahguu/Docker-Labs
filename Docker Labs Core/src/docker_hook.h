@@ -21,6 +21,7 @@ namespace Docker_Labs::Docker {
 		int Restart(Docker_Labs::Container container);
 		int Kill(Docker_Labs::Container container);
 		int Remove(Docker_Labs::Container container);
+		Docker_Labs::Container Reset(Docker_Labs::Container container);
 
 		json CallDockerAPI(const std::string& path, const std::string& data = "", std::string method = "GET");
 		int Test_API();

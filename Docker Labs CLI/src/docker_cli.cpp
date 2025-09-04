@@ -143,13 +143,16 @@ int Docker_Labs::Labs_CLI::Docker::Test_Container_Control(Docker_Labs::Labs_CLI:
 		std::cout << "Failed" << std::endl;
 	}
 	
-	docker.Start(result);
+	docker.Start(result);	
+	result = docker.Reset(result);
 	docker.Kill(result);
 	docker.Remove(result);
 	
+	B
 	return 0;
 }
 
+B
 int Docker_Labs::Labs_CLI::Docker::Test_Handler(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
 
@@ -184,13 +187,195 @@ int Docker_Labs::Labs_CLI::Docker::Help(Docker_Labs::Labs_CLI::Command_Interpret
 	return 0;
 }
 
-int Docker_Labs::Labs_CLI::Docker::Command_Handler(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
+int Docker_Labs::Docker::Commands::Start(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){	
+	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+	static struct option long_flags[] = {
+		{"help", no_argument, nullptr, 'h'},
+		{"name", required_argument, nullptr, 'n'}, 
+		{nullptr, 0, nullptr, 0}
+	};
+	
+	std::string name = "";
+	
+	int opt;
+	while((opt=getopt_long(argc, argv, "hn:", long_flags, nullptr)) != -1) {
+		switch (opt) {
+			case 'h':
+				std::cout << "Starts the specified container" << std::endl;
+				std::cout << "Available flags:" << std::endl;
+				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
+				std::cout << "\t-n, --name: [Required] Lets you specify the name of the container" << std::endl;
+				return 0;
+			case 'n': 
+				name = optarg;
+				continue;
+			case '?':
+			default:
+				std::string temp = argv[optind - 1];
+				while (!temp.empty() && temp[0] == '-') {
+					temp.erase(0, 1);
+				}
+				std::cerr << "Unknown flag: " << temp << std::endl;
+				return 1;
+		}
+	}
+	
+	if(name == ""){
+		std::cerr << "You must provide a name" << std::endl;
+		return 1;
+	}
+	
+	
+	Container result = docker.Get_Container(name);
+	docker.Start(result);
+	return 0;
+}
+
+
+int Docker_Labs::Docker::Commands::Stop(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){	
+	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+	static struct option long_flags[] = {
+		{"help", no_argument, nullptr, 'h'},
+		{"name", required_argument, nullptr, 'n'}, 
+		{nullptr, 0, nullptr, 0}
+	};
+	
+	std::string name = "";
+	
+	int opt;
+	while((opt=getopt_long(argc, argv, "hn:", long_flags, nullptr)) != -1) {
+		switch (opt) {
+			case 'h':
+				std::cout << "Stops the specified container" << std::endl;
+				std::cout << "Available flags:" << std::endl;
+				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
+				std::cout << "\t-n, --name: [Required] Lets you specify the name of the container" << std::endl;
+				return 0;
+			case 'n': 
+				name = optarg;
+				continue;
+			case '?':
+			default:
+				std::string temp = argv[optind - 1];
+				while (!temp.empty() && temp[0] == '-') {
+					temp.erase(0, 1);
+				}
+				std::cerr << "Unknown flag: " << temp << std::endl;
+				return 1;
+		}
+	}
+	
+	if(name == ""){
+		std::cerr << "You must provide a name" << std::endl;
+		return 1;
+	}
+	
+	
+	Container result = docker.Get_Container(name);
+	docker.Stop(result);
+	return 0;
+}
+
+
+int Docker_Labs::Docker::Commands::Reset(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){	
+	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+	static struct option long_flags[] = {
+		{"help", no_argument, nullptr, 'h'},
+		{"name", required_argument, nullptr, 'n'}, 
+		{nullptr, 0, nullptr, 0}
+	};
+	
+	std::string name = "";
+	
+	int opt;
+	while((opt=getopt_long(argc, argv, "hn:", long_flags, nullptr)) != -1) {
+		switch (opt) {
+			case 'h':
+				std::cout << "Resets the specified container back to its default state" << std::endl;
+				std::cout << "Available flags:" << std::endl;
+				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
+				std::cout << "\t-n, --name: [Required] Lets you specify the name of the container" << std::endl;
+				return 0;
+			case 'n': 
+				name = optarg;
+				continue;
+			case '?':
+			default:
+				std::string temp = argv[optind - 1];
+				while (!temp.empty() && temp[0] == '-') {
+					temp.erase(0, 1);
+				}
+				std::cerr << "Unknown flag: " << temp << std::endl;
+				return 1;
+		}
+	}
+	
+	if(name == ""){
+		std::cerr << "You must provide a name" << std::endl;
+		return 1;
+	}
+	
+	
+	Container result = docker.Get_Container(name);
+	docker.Reset(result);
+	return 0;
+}
+
+int Docker_Labs::Docker::Commands::Restart(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){	
+	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+	static struct option long_flags[] = {
+		{"help", no_argument, nullptr, 'h'},
+		{"name", required_argument, nullptr, 'n'}, 
+		{nullptr, 0, nullptr, 0}
+	};
+	
+	std::string name = "";
+	
+	int opt;
+	while((opt=getopt_long(argc, argv, "hn:", long_flags, nullptr)) != -1) {
+		switch (opt) {
+			case 'h':
+				std::cout << "Restarts the specified container" << std::endl;
+				std::cout << "Available flags:" << std::endl;
+				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
+				std::cout << "\t-n, --name: [Required] Lets you specify the name of the container" << std::endl;
+				return 0;
+			case 'n': 
+				name = optarg;
+				continue;
+			case '?':
+			default:
+				std::string temp = argv[optind - 1];
+				while (!temp.empty() && temp[0] == '-') {
+					temp.erase(0, 1);
+				}
+				std::cerr << "Unknown flag: " << temp << std::endl;
+				return 1;
+		}
+	}
+	
+	if(name == ""){
+		std::cerr << "You must provide a name" << std::endl;
+		return 1;
+	}
+	
+	
+	Container result = docker.Get_Container(name);
+	docker.Restart(result);
+	return 0;
+}
+
+int Docker_Labs::Docker::Commands::Command_Handler(Docker_Labs::Command_Interpreter command, int argc, char* argv[]){
 	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
 
 
-	static std::map<std::string_view, std::function<int(Docker_Labs::Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
-		{"help"sv, Docker_Labs::Labs_CLI::Docker::Help},
-		{"test"sv, Docker_Labs::Labs_CLI::Docker::Test_Handler}
+	static std::map<std::string_view, std::function<int(Docker_Labs::Command_Interpreter, int, char**)>> possible_commands = {
+		{"help"sv, Docker_Labs::Docker::Commands::Help},
+		{"test"sv, Docker_Labs::Docker::Commands::Test_Handler},
+		{"start"sv, Docker_Labs::Docker::Commands::Start},
+		{"stop"sv, Docker_Labs::Docker::Commands::Stop},
+		{"restart"sv, Docker_Labs::Docker::Commands::Restart},
+		{"reset"sv, Docker_Labs::Docker::Commands::Reset}
 	};
 
 	static struct option long_flags[] = {

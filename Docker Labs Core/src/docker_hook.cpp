@@ -73,7 +73,7 @@ std::vector<std::string> Docker_Labs::Docker::Docker::Get_Networks(Docker_Labs::
 	json response = CallDockerAPI(url);
 
 	if (response["httpCode"] == 404 || response["httpCode"] == 500) {
-		std::cerr << "Error " << response["httpCode"] << " getting image of container " << Get_Name(container) << ": " << response["body"]["message"] << std::endl;
+		std::cerr << "Error " << response["httpCode"] << " getting networks of container " << Get_Name(container) << ": " << response["body"]["message"] << std::endl;
 		throw "Error";
 	}
 
@@ -181,6 +181,113 @@ int Docker_Labs::Docker::Docker::Restart(Docker_Labs::Container container)
 	std::cout << "Container " << Get_Name(container) << " successfully restarted" << std::endl;
 
 	return 204;
+}
+
+Docker_Labs::Container Docker_Labs::Docker::Docker::Reset(Docker_Labs::Container container)
+{
+	
+	std::string url = "/containers/" + Get_ID(container) + "/json";
+	json response = CallDockerAPI(url);
+
+	if (response["httpCode"] == 404 || response["httpCode"] == 500) {
+		std::cout << "Error " << response["httpCode"] << " getting name of container " << Get_ID(container) << ": " << response["body"]["message"] << std::endl;
+		throw "Error";
+	}
+
+	std::string container_name = response["body"]["Name"].dump().substr(2, response["body"]["Name"].dump().length() - 3);
+
+
+
+	static const std::vector<std::string> ConfigKeys = {
+		"Hostname", "Domainname", "User", "AttachStdin", "AttachStdout", "AttachStderr",
+		"ExposedPorts", "Tty", "OpenStdin", "StdinOnce", "Env", "Cmd", "Healthcheck",
+		"ArgsEscaped", "Image", "Volumes", "WorkingDir", "Entrypoint", "OnBuild", "Labels",
+		"StopSignal", "StopTimeout", "Shell"
+	};
+	
+	// Whitelisted keys from HostConfig
+	static const std::vector<std::string> HostConfigKeys = {
+		"Binds", "ContainerIDFile", "LogConfig", "NetworkMode", "PortBindings",
+		"RestartPolicy", "AutoRemove", "VolumeDriver", "VolumesFrom", "CapAdd",
+		"CapDrop", "CgroupnsMode", "Dns", "DnsOptions", "DnsSearch", "ExtraHosts",
+		"GroupAdd", "IpcMode", "Cgroup", "Links", "OomScoreAdj", "PidMode",
+		"Privileged", "PublishAllPorts", "ReadonlyRootfs", "SecurityOpt", "UTSMode",
+		"UsernsMode", "ShmSize", "Runtime", "ConsoleSize", "CpuShares", "Memory",
+		"NanoCpus", "CgroupParent", "BlkioWeight", "BlkioWeightDevice",
+		"BlkioDeviceReadBps", "BlkioDeviceWriteBps", "BlkioDeviceReadIOps",
+		"BlkioDeviceWriteIOps", "CpuPeriod", "CpuQuota", "CpuRealtimePeriod",
+		"CpuRealtimeRuntime", "CpusetCpus", "CpusetMems", "Devices", "DeviceCgroupRules",
+		"DeviceRequests", "MemoryReservation", "MemorySwap", "MemorySwappiness",
+		"OomKillDisable", "PidsLimit", "Ulimits", "CpuCount", "CpuPercent",
+		"IOMaximumIOps", "IOMaximumBandwidth", "MaskedPaths", "ReadonlyPaths"
+	};
+	
+	auto copyAllowedKeys = [](const json& source, json& target, const std::vector<std::string>& allowedKeys) {
+		for (const auto& key : allowedKeys) {
+			if (source.contains(key)) {
+				target[key] = source[key];
+			}
+		}
+	};
+	
+	json createPayload;
+
+	// Copy Config fields
+	if (response["body"].contains("Config")) {
+		copyAllowedKeys(response["body"]["Config"], createPayload, ConfigKeys);
+	}
+	
+	// Copy HostConfig fields
+	if (response["body"].contains("HostConfig")) {
+		json hostConfigJson;
+		copyAllowedKeys(response["body"]["HostConfig"], hostConfigJson, HostConfigKeys);
+		createPayload["HostConfig"] = hostConfigJson;
+	}
+	
+	// Build NetworkingConfig from NetworkSettings.Network
+	if (response["body"].contains("NetworkSettings") && response["body"]["NetworkSettings"].contains("Networks")) {
+		const json& networks = response["body"]["NetworkSettings"]["Networks"];
+		if (networks.is_object()) {
+			json endpointsConfig = json::object();
+			for (auto it = networks.begin(); it != networks.end(); ++it){
+				const std::string& networkName = it.key();
+				const json& netInfo = it.value();
+				json endpointConfig;
+				json ipamConfig;
+				
+				if (!ipamConfig.empty()) {
+					endpointConfig["IPAMConfig"] = ipamConfig;
+				}
+				
+				if (netInfo.contains("Aliases") && !netInfo["Aliases"].is_null()) {
+					endpointConfig["Aliases"] = netInfo["Aliases"];
+				}
+				
+				if (netInfo.contains("MacAddress") && !netInfo["MacAddress"].get<std::string>().empty()) {
+					endpointConfig["MacAddress"] = netInfo["MacAddress"];
+				}
+				
+				endpointsConfig[networkName] = endpointConfig;
+			}
+			if (!endpointsConfig.empty()) {
+				createPayload["NetworkingConfig"]["EndpointsConfig"] = endpointsConfig;
+			}
+		}
+	}
+
+	Remove(container);
+
+	url = "/containers/create?name=" + container_name;
+	response = CallDockerAPI(url, createPayload.dump(), "POST");
+
+	if (response["httpCode"] != 201) {
+		std::cout << "Error " << response["httpCode"] << " resesting container " << container_name << ": " << response["body"]["message"] << std::endl;
+		throw "Error";
+	}
+
+	Docker_Labs::Container new_container = Docker_Labs::Container(response["body"]["Id"]);
+	new_container.Cache_Update();
+	return new_container;
 }
 
 int Docker_Labs::Docker::Docker::Kill(Docker_Labs::Container container)

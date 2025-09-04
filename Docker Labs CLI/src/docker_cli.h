@@ -11,4 +11,9 @@ namespace Docker_Labs::Labs_CLI::Docker{
 		int Help(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
 		int Test_API(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
 		int Test_Container_Control(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
+		
+		int Start(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
+		int Stop(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
+		int Restart(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
+		int Reset(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
 }
