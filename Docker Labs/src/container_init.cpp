@@ -38,8 +38,8 @@ int Docker_Labs::Init_Handler(int argc, char* argv[])
         case 'h':
             std::cout << "A command used to create a container and setup the cloudflare rules for it in one." << std::endl;
             std::cout << "\t-h, --help: used to show this (hopfully) helpful popup about how to use this command" << std::endl;
-            std::cout << "\t-u --user: [Required] provide an email that the container by default allows access to" << std::endl;
-            std::cout << "\t-i --image: [Required] provide the image that the container should be created from" << std::endl;
+            std::cout << "\t-u, --user: [Required] provide an email that the container by default allows access to" << std::endl;
+            std::cout << "\t-i, --image: [Required] provide the image that the container should be created from" << std::endl;
             std::cout << "\t-n, --name: used to set a custome name for a container" << std::endl;
             return 0;
         case 'u':
