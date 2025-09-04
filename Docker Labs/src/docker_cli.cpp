@@ -84,7 +84,7 @@ int Docker_Labs::Docker::Commands::Test_Container_Control(Docker_Labs::Command_I
 				std::cout << "Tests if the container control commands are working correctly" << std::endl;
 				std::cout << "Available flags:" << std::endl;
 				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "\t-n, --name: [Required] Lets you change the exact name of the container" << std::endl;
+				std::cout << "\t--n, -name: [Required] Lets you change the exact name of the container" << std::endl;
 				std::cout << "\t-i, --image: [Required] Lets you change the exact image of the container" << std::endl;
 				return 0;
 			case 'n': 

@@ -24,7 +24,6 @@ namespace Docker_Labs::Docker {
 
 		json CallDockerAPI(const std::string& path, const std::string& data = "", std::string method = "GET");
 		int Test_API();
-		std::vector<Docker_Labs::Container> Get_All_Containers();
 	private:
 		Docker_Labs::Curl_Wrapper curl;
 	};

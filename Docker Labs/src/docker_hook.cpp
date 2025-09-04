@@ -253,29 +253,3 @@ int Docker_Labs::Docker::Docker::Test_API()
 
 	return response["httpCode"];
 }
-
-std::vector<Docker_Labs::Container> Docker_Labs::Docker::Docker::Get_All_Containers(){
-	std::string url = "/containers/json?all=true";
-	json response = CallDockerAPI(url);
-
-	if (response["httpCode"] == 404 || response["httpCode"] == 500) {
-		std::cerr << "Error " << response["httpCode"] << " getting containers" << ": " << response["body"]["message"] << std::endl;
-		throw "Error";
-	}
-
-	std::vector<Docker_Labs::Container> containers;
-
-	for(json con_json : response["body"]){
-		if(!con_json["Labels"].contains("Docker_Labs") || con_json["Labels"]["Docker_Labs"] != "true") {
-			continue;
-		}
-		Docker_Labs::Container container = Docker_Labs::Container(con_json["Id"]);
-		container.Cache_Update();
-		containers.push_back(container);
-	}
-
-	return containers;
-}
-
-
-
