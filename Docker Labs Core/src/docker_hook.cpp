@@ -368,7 +368,7 @@ std::vector<Docker_Labs::Container> Docker_Labs::Docker::Docker::Get_All_Contain
 	json response = CallDockerAPI(url);
 
 	if (response["httpCode"] == 404 || response["httpCode"] == 500) {
-		std::cerr << "Error " << response["httpCode"] << " getting containers" << ": " << response["body"]["message"] << std::endl;
+		std::cerr << "Error " << response["httpCode"] << " getting containers: " << response["body"]["message"] << std::endl;
 		throw "Error";
 	}
 
@@ -388,3 +388,40 @@ std::vector<Docker_Labs::Container> Docker_Labs::Docker::Docker::Get_All_Contain
 
 
 
+std::vector<std::string> Docker_Labs::Docker::Docker::Get_All_Networks() {
+	std::string url = "/networks";
+	json response = CallDockerAPI(url);
+
+	if(response["httpCode"] == 500) {
+		std::cerr << "Error " << response["httpCode"] << " getting networks: " <<  response["body"]["message"] << std::endl;
+		throw "Error";
+	}
+
+	std::vector<std::string> containers;
+
+	for (json network : response["body"]) {
+		containers.push_back(network["Id"]);
+	}
+
+	return containers;
+}
+
+int Docker_Labs::Docker::Docker::Create_Network(std::string network_name, std::string subnet, std::string gateway, std::string IP_Range) {
+	std::string url = "/networks/create";
+	json response = CallDockerAPI(url, R"({"Name": ")" + network_name
+		       	+ R"(", "IPAM": {"Config": [{"Subnet": ")" + subnet 
+			+ R"(", "IPRange": ")" + IP_Range 
+			+ R"(", "Gateway": ")" + gateway + R"(}]} )", "POST");
+
+	if (response["httpCode"] != 201) {
+		throw "Error";
+	}
+}
+int Docker_Labs::Docker::Docker::Delete_Network(Docker_Labs::Network network) {};
+int Docker_Labs::Docker::Docker::Add_To_Network(Docker_Labs::Network network) {};
+int Docker_Labs::Docker::Docker::Remove_From_Network(Docker_Labs::Network network) {};
+std::string Docker_Labs::Docker::Docker::Get_ID(Docker_Labs::Network network) {};
+std::string Docker_Labs::Docker::Docker::Get_Subnet(Docker_Labs::Network network) {};
+std::string Docker_Labs::Docker::Docker::Get_Gateway(Docker_Labs::Network network) {};
+std::string Docker_Labs::Docker::Docker::Get_IP_Range(Docker_Labs::Network network) {};
+std::vector<Docker_Labs::Container> Docker_Labs::Docker::Docker::Get_Networks_Container(Docker_Labs::Network network) {};
