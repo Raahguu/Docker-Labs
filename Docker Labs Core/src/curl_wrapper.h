@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace Docker_Labs {
+namespace Docker_Labs::Labs_Core {
 	class Curl_Wrapper {
 	public:
 		Curl_Wrapper();

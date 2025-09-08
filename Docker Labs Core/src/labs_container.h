@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-namespace Docker_Labs {
+namespace Docker_Labs::Labs_Core {
 
 	class Container {
 	public:
@@ -19,8 +19,6 @@ namespace Docker_Labs {
 		static Container Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks);
 
 	private:
-
-
 		std::string id;
 		std::string name_cache;
 		std::string image_cache;

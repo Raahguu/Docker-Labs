@@ -9,7 +9,6 @@
 #include <getopt.h>
 
 
-
 namespace Docker_Labs::Labs_CLI {
 	class Command_Interpreter {
 	public:

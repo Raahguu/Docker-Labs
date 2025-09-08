@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace Docker_Labs {
+namespace Docker_Labs::Labs_Core {
 	class User {
 	public:
 		User(std::string email);

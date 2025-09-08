@@ -1,10 +1,12 @@
 #include "docker_cli.h"
 #include "docker_hook.h"
 
-int Docker_Labs::Labs_CLI::Docker::Test_API(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
+using namespace Docker_Labs;
+
+int Labs_CLI::Docker::Test_API(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	int returnCode = 0;	
 
-	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'}, // --help maps to 'h'
 		{"code", no_argument, nullptr, 'c'}, // --code maps to 'c'
@@ -56,8 +58,8 @@ int Docker_Labs::Labs_CLI::Docker::Test_API(Docker_Labs::Labs_CLI::Command_Inter
 }
 
 
-int Docker_Labs::Labs_CLI::Docker::Test_Container_Control(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
-	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+int Labs_CLI::Docker::Test_Container_Control(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
+	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -105,7 +107,7 @@ int Docker_Labs::Labs_CLI::Docker::Test_Container_Control(Docker_Labs::Labs_CLI:
 	}
 	
 	
-	Container result = docker.Create_Container(name, image);
+	Labs_Core::Container result = docker.Create_Container(name, image);
 	docker.Start(result);
 	
 	std::string id = docker.Get_ID(result);
@@ -142,13 +144,13 @@ int Docker_Labs::Labs_CLI::Docker::Test_Container_Control(Docker_Labs::Labs_CLI:
 }
 
 
-int Docker_Labs::Labs_CLI::Docker::Test_Handler(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
+int Labs_CLI::Docker::Test_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
 
 
-	static std::map<std::string_view, std::function<int(Docker_Labs::Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
-		{"api", Docker_Labs::Labs_CLI::Docker::Test_API},
-		{"container-control", Docker_Labs::Labs_CLI::Docker::Test_Container_Control}
+	static std::map<std::string_view, std::function<int(Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
+		{"api", Labs_CLI::Docker::Test_API},
+		{"container-control", Labs_CLI::Docker::Test_Container_Control}
 	};
 
 	auto it = possible_commands.find(command.Get_SubCommand());
@@ -163,7 +165,7 @@ int Docker_Labs::Labs_CLI::Docker::Test_Handler(Docker_Labs::Labs_CLI::Command_I
 	return 1;
 }
 
-int Docker_Labs::Labs_CLI::Docker::Help(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
+int Labs_CLI::Docker::Help(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	std::cout << "./labs-cli docker <command> [<subcommand>] [<flags>]" << std::endl;
 	std::cout << std::endl;
 	std::cout << "The current available commands are:" << std::endl;
@@ -176,8 +178,8 @@ int Docker_Labs::Labs_CLI::Docker::Help(Docker_Labs::Labs_CLI::Command_Interpret
 	return 0;
 }
 
-int Docker_Labs::Labs_CLI::Docker::Start(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
-	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+int Labs_CLI::Docker::Start(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
+	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -215,14 +217,14 @@ int Docker_Labs::Labs_CLI::Docker::Start(Docker_Labs::Labs_CLI::Command_Interpre
 	}
 	
 	
-	Container result = docker.Get_Container(name);
+	Labs_Core::Container result = docker.Get_Container(name);
 	docker.Start(result);
 	return 0;
 }
 
 
-int Docker_Labs::Labs_CLI::Docker::Stop(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
-	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+int Labs_CLI::Docker::Stop(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
+	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -260,14 +262,14 @@ int Docker_Labs::Labs_CLI::Docker::Stop(Docker_Labs::Labs_CLI::Command_Interpret
 	}
 	
 	
-	Container result = docker.Get_Container(name);
+	Labs_Core::Container result = docker.Get_Container(name);
 	docker.Stop(result);
 	return 0;
 }
 
 
-int Docker_Labs::Labs_CLI::Docker::Reset(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
-	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+int Labs_CLI::Docker::Reset(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
+	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -305,13 +307,13 @@ int Docker_Labs::Labs_CLI::Docker::Reset(Docker_Labs::Labs_CLI::Command_Interpre
 	}
 	
 	
-	Container result = docker.Get_Container(name);
+	Labs_Core::Container result = docker.Get_Container(name);
 	docker.Reset(result);
 	return 0;
 }
 
-int Docker_Labs::Labs_CLI::Docker::Restart(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
-	Docker_Labs::Docker::Docker docker = Docker_Labs::Docker::Docker();
+int Labs_CLI::Docker::Restart(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
+	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -349,22 +351,22 @@ int Docker_Labs::Labs_CLI::Docker::Restart(Docker_Labs::Labs_CLI::Command_Interp
 	}
 	
 	
-	Container result = docker.Get_Container(name);
+	Labs_Core::Container result = docker.Get_Container(name);
 	docker.Restart(result);
 	return 0;
 }
 
-int Docker_Labs::Labs_CLI::Docker::Command_Handler(Docker_Labs::Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
+int Labs_CLI::Docker::Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
 
 
-	static std::map<std::string_view, std::function<int(Docker_Labs::Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
-		{"help", Docker_Labs::Labs_CLI::Docker::Help},
-		{"test", Docker_Labs::Labs_CLI::Docker::Test_Handler},
-		{"start", Docker_Labs::Labs_CLI::Docker::Start},
-		{"stop", Docker_Labs::Labs_CLI::Docker::Stop},
-		{"restart", Docker_Labs::Labs_CLI::Docker::Restart},
-		{"reset", Docker_Labs::Labs_CLI::Docker::Reset}
+	static std::map<std::string_view, std::function<int(Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
+		{"help", Labs_CLI::Docker::Help},
+		{"test", Labs_CLI::Docker::Test_Handler},
+		{"start", Labs_CLI::Docker::Start},
+		{"stop", Labs_CLI::Docker::Stop},
+		{"restart", Labs_CLI::Docker::Restart},
+		{"reset", Labs_CLI::Docker::Reset}
 	};
 
 	static struct option long_flags[] = {

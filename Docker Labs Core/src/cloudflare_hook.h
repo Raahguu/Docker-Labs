@@ -7,27 +7,35 @@
 
 using json = nlohmann::json;
 
-namespace Docker_Labs::Cloudflare {
-	class API_Auth {
-		friend class Cloudflared;
-	public:
-		API_Auth();
-		//API_Auth(std::string account_id, std::string API_token);
-		static API_Auth Get_Auth();
-	private:
-		API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
-		static std::string Cin();
-		const std::string ACC;
-		const std::string ZONE;
-		const std::string TUNN;
-		const std::string TKN;
-		const std::string DOMN;
-	};
+namespace Docker_Labs::Labs_Core {
 
-	class Cloudflared {
+	class Cloudflare {
 	public:
-		Cloudflared(const API_Auth& auth);
-		Cloudflared(const API_Auth& auth, bool must_cout);
+		class API_Auth {
+			friend class Cloudflare;
+		public:
+			API_Auth();
+			//API_Auth(std::string account_id, std::string API_token);
+			static API_Auth Get_Auth();
+		private:
+			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
+			static std::string Cin();
+			const std::string ACC;
+			const std::string ZONE;
+			const std::string TUNN;
+			const std::string TKN;
+			const std::string DOMN;
+		};
+
+		static int Test_API(const Cloudflare::API_Auth& auth);
+
+		static std::vector<User> Fetch_Seats(const Cloudflare::API_Auth& auth);
+
+		static json Fetch_Ingress(const Cloudflare::API_Auth& auth);
+		static json Fetch_DNS_Records(const Cloudflare::API_Auth& auth);
+
+		Cloudflare(const API_Auth& auth);
+		Cloudflare(const API_Auth& auth, bool must_cout);
 		int Test_API();
 		std::vector<std::tuple<int, std::string>> Get_Return_Info(json responce);
 
@@ -90,11 +98,4 @@ namespace Docker_Labs::Cloudflare {
 		std::string Generate_Revoke_Policy_Config(Container container, User user, json application_policy);
 
 	};
-
-	int Test_API(const API_Auth& auth);
-
-	std::vector<User> Fetch_Seats(const API_Auth& auth);
-
-	json Fetch_Ingress(const API_Auth& auth);
-	json Fetch_DNS_Records(const API_Auth& auth);
 }

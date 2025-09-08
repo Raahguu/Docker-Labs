@@ -6,44 +6,44 @@
 
 using json = nlohmann::json;
 
-namespace Docker_Labs::Docker {
+namespace Docker_Labs::Labs_Core::Docker {
 	class Docker;
 
 	class Docker {
 	public:
 		Docker();
 
-		Docker_Labs::Container Get_Container(std::string container_name);
-		std::string Get_ID(Docker_Labs::Container container);
-		std::string Get_Name(Docker_Labs::Container container);
-		std::string Get_Image(Docker_Labs::Container container);
-		std::string Get_IP(Docker_Labs::Container container);
-		std::vector<std::string> Get_Networks(Docker_Labs::Container container);
-		bool Get_Status(Docker_Labs::Container container);
-		Docker_Labs::Container Create_Container(std::string container_name, std::string image_name);
-		int Start(Docker_Labs::Container container);
-		int Stop(Docker_Labs::Container container);
-		int Restart(Docker_Labs::Container container);
-		int Kill(Docker_Labs::Container container);
-		int Remove(Docker_Labs::Container container);
-		Docker_Labs::Container Reset(Docker_Labs::Container container);
+		Labs_Core::Container Get_Container(std::string container_name);
+		std::string Get_ID(Labs_Core::Container container);
+		std::string Get_Name(Labs_Core::Container container);
+		std::string Get_Image(Labs_Core::Container container);
+		std::string Get_IP(Labs_Core::Container container);
+		std::vector<std::string> Get_Networks(Labs_Core::Container container);
+		bool Get_Status(Labs_Core::Container container);
+		Labs_Core::Container Create_Container(std::string container_name, std::string image_name);
+		int Start(Labs_Core::Container container);
+		int Stop(Labs_Core::Container container);
+		int Restart(Labs_Core::Container container);
+		int Kill(Labs_Core::Container container);
+		int Remove(Labs_Core::Container container);
+		Labs_Core::Container Reset(Labs_Core::Container container);
 
 		//Network Stuff
 		std::vector<std::string> Get_All_Networks();
 		int Create_Network(std::string network_name, std::string subnet, std::string gateway, std::string IP_Range);
-		int Delete_Network(Docker_Labs::Network network);
-		int Add_To_Network(Docker_Labs::Network network);
-		int Remove_From_Network(Docker_Labs::Network network);
-		std::string Get_ID(Docker_Labs::Network network);
-		std::string Get_Subnet(Docker_Labs::Network network);
-		std::string Get_Gateway(Docker_Labs::Network network);
-		std::string Get_IP_Range(Docker_Labs::Network network);
-		std::vector<Docker_Labs::Container> Get_Networks_Container(Docker_Labs::Network network);
+		int Delete_Network(Labs_Core::Network network);
+		int Add_To_Network(Labs_Core::Network network);
+		int Remove_From_Network(Labs_Core::Network network);
+		std::string Get_ID(Labs_Core::Network network);
+		std::string Get_Subnet(Labs_Core::Network network);
+		std::string Get_Gateway(Labs_Core::Network network);
+		std::string Get_IP_Range(Labs_Core::Network network);
+		std::vector<Labs_Core::Container> Get_Networks_Container(Labs_Core::Network network);
 
 		json CallDockerAPI(const std::string& path, const std::string& data = "", std::string method = "GET");
 		int Test_API();
-		std::vector<Docker_Labs::Container> Get_All_Containers();
+		std::vector<Labs_Core::Container> Get_All_Containers();
 	private:
-		Docker_Labs::Curl_Wrapper curl;
+		Labs_Core::Curl_Wrapper curl;
 	};
 }

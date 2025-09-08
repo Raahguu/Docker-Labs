@@ -2,20 +2,22 @@
 #include <tuple>
 #include "curl_wrapper.h"
 
-Docker_Labs::Curl_Wrapper::Curl_Wrapper()
+using namespace Docker_Labs;
+
+Labs_Core::Curl_Wrapper::Curl_Wrapper()
 {
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 	curl = curl_easy_init();
 }
 
-std::size_t Docker_Labs::Curl_Wrapper::WriteCallback(char* contents, std::size_t size, std::size_t nmemb, std::string* userp) {
+std::size_t Labs_Core::Curl_Wrapper::WriteCallback(char* contents, std::size_t size, std::size_t nmemb, std::string* userp) {
 	std::string* response = static_cast<std::string*>(userp);
 	response->append(static_cast<char*>(contents), size * nmemb);
 	return size * nmemb;
 }
 
 
-std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Socket_Request(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type, std::string socket)
+std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Socket_Request(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type, std::string socket)
 {
 	curl_easy_reset(curl);
 
@@ -65,17 +67,17 @@ std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Socket_Request(const st
 	throw "a tantrum";
 }
 
-std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Web_Request(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type)
+std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Web_Request(const std::string& url, const std::string& data, const std::vector<std::string>& headers, std::string& request_type)
 {
-	return Docker_Labs::Curl_Wrapper::Socket_Request(url, data, headers, request_type, "");
+	return Labs_Core::Curl_Wrapper::Socket_Request(url, data, headers, request_type, "");
 }
 
-std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Web_Request(const std::string& url, const std::vector<std::string>& headers, std::string& request_type)
+std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Web_Request(const std::string& url, const std::vector<std::string>& headers, std::string& request_type)
 {
-	return Docker_Labs::Curl_Wrapper::Socket_Request(url, (std::string)"", headers, request_type, "");
+	return Labs_Core::Curl_Wrapper::Socket_Request(url, (std::string)"", headers, request_type, "");
 }
 
-std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Get(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "GET"; return Web_Request(url, headers, request_type); }
-std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Delete(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "DELETE"; return Web_Request(url, headers, request_type); }
-std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Post(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "POST"; return Web_Request(url, data, headers, request_type); }
-std::tuple<long, std::string> Docker_Labs::Curl_Wrapper::Put(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "PUT"; return Web_Request(url, data, headers, request_type); }
+std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Get(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "GET"; return Web_Request(url, headers, request_type); }
+std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Delete(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "DELETE"; return Web_Request(url, headers, request_type); }
+std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Post(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "POST"; return Web_Request(url, data, headers, request_type); }
+std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Put(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "PUT"; return Web_Request(url, data, headers, request_type); }
