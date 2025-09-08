@@ -23,6 +23,8 @@ target_include_directories(labs-cli PRIVATE ${DockerLabsCoreHeaders})
 find_package(CURL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
+add_dependencies(labs-cli DockerLabsCore)
+
 target_link_libraries(labs-cli PRIVATE ${DockerLabsCore})
 target_link_libraries(labs-cli PRIVATE CURL::libcurl)
 target_link_libraries(labs-cli PRIVATE nlohmann_json::nlohmann_json)
