@@ -135,7 +135,7 @@ int Docker_Labs::Labs_CLI::Docker::Test_Container_Control(Docker_Labs::Labs_CLI:
 	}
 	
 	docker.Start(result);	
-	docker.Reset(result);
+	result = docker.Reset(result);
 	docker.Kill(result);
 	docker.Remove(result);
 	return 0;
