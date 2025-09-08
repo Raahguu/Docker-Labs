@@ -6,9 +6,7 @@
 
 using json = nlohmann::json;
 
-namespace Docker_Labs::Labs_Core::Docker {
-	class Docker;
-
+namespace Docker_Labs::Labs_Core {
 	class Docker {
 	public:
 		Docker();

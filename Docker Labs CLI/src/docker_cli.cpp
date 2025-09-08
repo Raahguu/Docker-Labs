@@ -6,7 +6,7 @@ using namespace Docker_Labs;
 int Labs_CLI::Docker::Test_API(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	int returnCode = 0;	
 
-	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+	Labs_Core::Docker docker = Labs_Core::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'}, // --help maps to 'h'
 		{"code", no_argument, nullptr, 'c'}, // --code maps to 'c'
@@ -59,7 +59,7 @@ int Labs_CLI::Docker::Test_API(Labs_CLI::Command_Interpreter command, int argc, 
 
 
 int Labs_CLI::Docker::Test_Container_Control(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
-	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+	Labs_Core::Docker docker = Labs_Core::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -179,7 +179,7 @@ int Labs_CLI::Docker::Help(Labs_CLI::Command_Interpreter command, int argc, char
 }
 
 int Labs_CLI::Docker::Start(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
-	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+	Labs_Core::Docker docker = Labs_Core::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -224,7 +224,7 @@ int Labs_CLI::Docker::Start(Labs_CLI::Command_Interpreter command, int argc, cha
 
 
 int Labs_CLI::Docker::Stop(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
-	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+	Labs_Core::Docker docker = Labs_Core::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -269,7 +269,7 @@ int Labs_CLI::Docker::Stop(Labs_CLI::Command_Interpreter command, int argc, char
 
 
 int Labs_CLI::Docker::Reset(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
-	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+	Labs_Core::Docker docker = Labs_Core::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 
@@ -313,7 +313,7 @@ int Labs_CLI::Docker::Reset(Labs_CLI::Command_Interpreter command, int argc, cha
 }
 
 int Labs_CLI::Docker::Restart(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
-	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+	Labs_Core::Docker docker = Labs_Core::Docker();
 	static struct option long_flags[] = {
 		{"help", no_argument, nullptr, 'h'},
 		{"name", required_argument, nullptr, 'n'}, 

@@ -4,7 +4,7 @@
 using namespace Docker_Labs;
 
 int Labs_CLI::Global_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {
-    Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+    Labs_Core::Docker docker = Labs_Core::Docker();
     Labs_Core::Cloudflare::API_Auth cf_auth = Labs_Core::Cloudflare::API_Auth::Get_Auth();
     Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth, false);
     bool keep_container = false;
@@ -83,11 +83,11 @@ int Labs_CLI::Global_Handler(Labs_CLI::Command_Interpreter command, int argc, ch
     return 1;
 }
 
-int Labs_CLI::Init_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker::Docker docker, std::string email, std::string image) {
+int Labs_CLI::Init_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker docker, std::string email, std::string image) {
     return Init_Handler(cloudflare, docker, email, image, "");
 }
 
-int Labs_CLI::Init_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker::Docker docker, std::string email, std::string image, std::string container_name)
+int Labs_CLI::Init_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker docker, std::string email, std::string image, std::string container_name)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -128,7 +128,7 @@ int Labs_CLI::Init_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker::
     return 0;
 }
 
-int Labs_CLI::Rm_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker::Docker docker, std::string container_name, bool keep_container)
+int Labs_CLI::Rm_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker docker, std::string container_name, bool keep_container)
 {
     std::cout << container_name << std::endl;
     Labs_Core::Container container = docker.Get_Container(container_name);
@@ -147,7 +147,7 @@ int Labs_CLI::Rm_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker::Do
     return 0;
 }
 
-int Labs_CLI::Nuke(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker::Docker docker, bool keep_containers)
+int Labs_CLI::Nuke(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker docker, bool keep_containers)
 {
 
 

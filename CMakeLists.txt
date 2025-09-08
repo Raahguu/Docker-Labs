@@ -3,7 +3,7 @@
 #
 
 
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.11)
 project ("Docker Labs")
 
 
@@ -16,5 +16,7 @@ endif()
 
 
 # Include sub-projects.
-add_subdirectory ("Docker Labs CLI")
+
 add_subdirectory ("Docker Labs Core")
+add_subdirectory ("Docker Labs CLI")
+add_subdirectory ("Docker Labs Web")

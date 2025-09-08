@@ -5,12 +5,12 @@
 
 using namespace Docker_Labs;
 
-Labs_Core::Docker::Docker::Docker()
+Labs_Core::Docker::Docker()
 {
 	this->curl = Labs_Core::Curl_Wrapper();
 }
 
-Labs_Core::Container Labs_Core::Docker::Docker::Get_Container(std::string container_name)
+Labs_Core::Container Labs_Core::Docker::Get_Container(std::string container_name)
 {
 	std::string url = "/containers/json?all=true&filters=%7B%22name%22%3A%5B%22^" + container_name + "$%22%5D%7D";
 	json response = CallDockerAPI(url);
@@ -25,12 +25,12 @@ Labs_Core::Container Labs_Core::Docker::Docker::Get_Container(std::string contai
 	return container;
 }
 
-std::string Labs_Core::Docker::Docker::Get_ID(Labs_Core::Container container)
+std::string Labs_Core::Docker::Get_ID(Labs_Core::Container container)
 {
 	return container.Get_ID();
 }
 
-std::string Labs_Core::Docker::Docker::Get_Name(Labs_Core::Container container)
+std::string Labs_Core::Docker::Get_Name(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/json";
 	json response = CallDockerAPI(url);
@@ -43,7 +43,7 @@ std::string Labs_Core::Docker::Docker::Get_Name(Labs_Core::Container container)
 	return response["body"]["Name"].empty() ? Get_ID(container) : response["body"]["Name"].dump().substr(2, response["body"]["Name"].dump().length() - 3);
 }
 
-std::string Labs_Core::Docker::Docker::Get_Image(Labs_Core::Container container)
+std::string Labs_Core::Docker::Get_Image(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/json";
 	json response = CallDockerAPI(url);
@@ -56,7 +56,7 @@ std::string Labs_Core::Docker::Docker::Get_Image(Labs_Core::Container container)
 	return response["body"]["Config"]["Image"];
 }
 
-std::string Labs_Core::Docker::Docker::Get_IP(Labs_Core::Container container)
+std::string Labs_Core::Docker::Get_IP(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/json";
 	json response = CallDockerAPI(url);
@@ -69,7 +69,7 @@ std::string Labs_Core::Docker::Docker::Get_IP(Labs_Core::Container container)
 	return response["body"]["NetworkSettings"]["Networks"]["bridge"]["IPAddress"];
 }
 
-std::vector<std::string> Labs_Core::Docker::Docker::Get_Networks(Labs_Core::Container container)
+std::vector<std::string> Labs_Core::Docker::Get_Networks(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/json";
 	json response = CallDockerAPI(url);
@@ -88,7 +88,7 @@ std::vector<std::string> Labs_Core::Docker::Docker::Get_Networks(Labs_Core::Cont
 	return networks;
 }
 
-bool Labs_Core::Docker::Docker::Get_Status(Labs_Core::Container container)
+bool Labs_Core::Docker::Get_Status(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/json";
 	json response = CallDockerAPI(url);
@@ -101,7 +101,7 @@ bool Labs_Core::Docker::Docker::Get_Status(Labs_Core::Container container)
 	return response["body"]["State"]["Running"];
 }
 
-Labs_Core::Container Labs_Core::Docker::Docker::Create_Container(std::string container_name, std::string image_name) {
+Labs_Core::Container Labs_Core::Docker::Create_Container(std::string container_name, std::string image_name) {
 	std::string url = "/containers/create?name=" + container_name;
 
 	std::string request_data = R"({
@@ -132,7 +132,7 @@ Labs_Core::Container Labs_Core::Docker::Docker::Create_Container(std::string con
 	return container;
 }
 
-int Labs_Core::Docker::Docker::Start(Labs_Core::Container container)
+int Labs_Core::Docker::Start(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/start";
 	json response = CallDockerAPI(url, "", "POST");
@@ -151,7 +151,7 @@ int Labs_Core::Docker::Docker::Start(Labs_Core::Container container)
 	return 204;
 }
 
-int Labs_Core::Docker::Docker::Stop(Labs_Core::Container container)
+int Labs_Core::Docker::Stop(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/stop";
 	json response = CallDockerAPI(url, "", "POST");
@@ -170,7 +170,7 @@ int Labs_Core::Docker::Docker::Stop(Labs_Core::Container container)
 	return 204;
 }
 
-int Labs_Core::Docker::Docker::Restart(Labs_Core::Container container)
+int Labs_Core::Docker::Restart(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/restart";
 	json response = CallDockerAPI(url, "", "POST");
@@ -185,7 +185,7 @@ int Labs_Core::Docker::Docker::Restart(Labs_Core::Container container)
 	return 204;
 }
 
-Labs_Core::Container Labs_Core::Docker::Docker::Reset(Labs_Core::Container container)
+Labs_Core::Container Labs_Core::Docker::Reset(Labs_Core::Container container)
 {
 	
 	std::string url = "/containers/" + Get_ID(container) + "/json";
@@ -292,7 +292,7 @@ Labs_Core::Container Labs_Core::Docker::Docker::Reset(Labs_Core::Container conta
 	return new_container;
 }
 
-int Labs_Core::Docker::Docker::Kill(Labs_Core::Container container)
+int Labs_Core::Docker::Kill(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "/kill";
 	json response = CallDockerAPI(url, "", "POST");
@@ -311,7 +311,7 @@ int Labs_Core::Docker::Docker::Kill(Labs_Core::Container container)
 	return 204;
 }
 
-int Labs_Core::Docker::Docker::Remove(Labs_Core::Container container)
+int Labs_Core::Docker::Remove(Labs_Core::Container container)
 {
 	std::string url = "/containers/" + Get_ID(container) + "?force=true";
 	json response = CallDockerAPI(url, "", "DELETE");
@@ -326,7 +326,7 @@ int Labs_Core::Docker::Docker::Remove(Labs_Core::Container container)
 	return 204;
 }
 
-json Labs_Core::Docker::Docker::CallDockerAPI(const std::string& path, const std::string& data, std::string method)
+json Labs_Core::Docker::CallDockerAPI(const std::string& path, const std::string& data, std::string method)
 {
 	std::string url = "http://localhost/v1.51" + path;
 
@@ -355,7 +355,7 @@ json Labs_Core::Docker::Docker::CallDockerAPI(const std::string& path, const std
 	return result;
 }
 
-int Labs_Core::Docker::Docker::Test_API()
+int Labs_Core::Docker::Test_API()
 {
 	std::string url = "/info";
 	json response = CallDockerAPI(url);
@@ -363,7 +363,7 @@ int Labs_Core::Docker::Docker::Test_API()
 	return response["httpCode"];
 }
 
-std::vector<Labs_Core::Container> Labs_Core::Docker::Docker::Get_All_Containers(){
+std::vector<Labs_Core::Container> Labs_Core::Docker::Get_All_Containers(){
 	std::string url = "/containers/json?all=true";
 	json response = CallDockerAPI(url);
 
@@ -388,7 +388,7 @@ std::vector<Labs_Core::Container> Labs_Core::Docker::Docker::Get_All_Containers(
 
 
 
-std::vector<std::string> Labs_Core::Docker::Docker::Get_All_Networks() {
+std::vector<std::string> Labs_Core::Docker::Get_All_Networks() {
 	std::string url = "/networks";
 	json response = CallDockerAPI(url);
 
@@ -406,7 +406,7 @@ std::vector<std::string> Labs_Core::Docker::Docker::Get_All_Networks() {
 	return containers;
 }
 
-int Labs_Core::Docker::Docker::Create_Network(std::string network_name, std::string subnet, std::string gateway, std::string IP_Range) {
+int Labs_Core::Docker::Create_Network(std::string network_name, std::string subnet, std::string gateway, std::string IP_Range) {
 	std::string url = "/networks/create";
 	json response = CallDockerAPI(url, R"({"Name": ")" + network_name
 		       	+ R"(", "IPAM": {"Config": [{"Subnet": ")" + subnet 
@@ -417,11 +417,11 @@ int Labs_Core::Docker::Docker::Create_Network(std::string network_name, std::str
 		throw "Error";
 	}
 }
-int Labs_Core::Docker::Docker::Delete_Network(Labs_Core::Network network) {};
-int Labs_Core::Docker::Docker::Add_To_Network(Labs_Core::Network network) {};
-int Labs_Core::Docker::Docker::Remove_From_Network(Labs_Core::Network network) {};
-std::string Labs_Core::Docker::Docker::Get_ID(Labs_Core::Network network) {};
-std::string Labs_Core::Docker::Docker::Get_Subnet(Labs_Core::Network network) {};
-std::string Labs_Core::Docker::Docker::Get_Gateway(Labs_Core::Network network) {};
-std::string Labs_Core::Docker::Docker::Get_IP_Range(Labs_Core::Network network) {};
-std::vector<Labs_Core::Container> Labs_Core::Docker::Docker::Get_Networks_Container(Labs_Core::Network network) {};
+int Labs_Core::Docker::Delete_Network(Labs_Core::Network network) {};
+int Labs_Core::Docker::Add_To_Network(Labs_Core::Network network) {};
+int Labs_Core::Docker::Remove_From_Network(Labs_Core::Network network) {};
+std::string Labs_Core::Docker::Get_ID(Labs_Core::Network network) {};
+std::string Labs_Core::Docker::Get_Subnet(Labs_Core::Network network) {};
+std::string Labs_Core::Docker::Get_Gateway(Labs_Core::Network network) {};
+std::string Labs_Core::Docker::Get_IP_Range(Labs_Core::Network network) {};
+std::vector<Labs_Core::Container> Labs_Core::Docker::Get_Networks_Container(Labs_Core::Network network) {};

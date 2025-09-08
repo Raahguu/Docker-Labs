@@ -530,7 +530,7 @@ int Labs_Core::Cloudflare::Revoke_Container(Container container, User user)
 
 int Labs_Core::Cloudflare::Init_Access(Container container, User user)
 {
-	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+	Labs_Core::Docker docker = Labs_Core::Docker();
 	bool err_count = 0; // Let bool alg apply :)
 	docker.Start(container);
 	sleep(1);

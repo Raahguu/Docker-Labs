@@ -26,6 +26,6 @@ std::vector<Labs_Core::Container> Labs_Core::Network::Get_Containers_Cache() {
 	return containers_cache;
 };
 int Labs_Core::Network::Cache_Update() {
-	Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+	Labs_Core::Docker docker = Labs_Core::Docker();
 	return 0;
 };

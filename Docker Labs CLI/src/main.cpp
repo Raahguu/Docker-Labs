@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 Labs_CLI::Command_Interpreter::Command_Interpreter(int argc, char* argv[]) {
 
 	if (argc < 2) {
-		std::cerr << "Usage: labs-cli <partition> [command] [subcommand]\n";
+		std::cerr << "Usage: " << argv[0] << " <partition> [command] [subcommand]\n";
 	}
 	else {
 

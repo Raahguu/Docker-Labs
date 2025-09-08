@@ -127,7 +127,7 @@ int Labs_CLI::Cloudflare::Fetch_DNS_Records(Labs_Core::Cloudflare::API_Auth cf_a
 
 Labs_Core::Container Labs_CLI::Cloudflare::Spec_Container(int argc, char* argv[])
 {
-    Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+    Labs_Core::Docker docker = Labs_Core::Docker();
     static struct option long_flags[] = {
         {"help", no_argument, nullptr, 'h'},
         {"container", required_argument, nullptr, 'c'},
@@ -169,7 +169,7 @@ Labs_Core::Container Labs_CLI::Cloudflare::Spec_Container(int argc, char* argv[]
 }
 std::tuple<Labs_Core::Container, Labs_Core::User> Labs_CLI::Cloudflare::Spec_Container_User(int argc, char* argv[])
 {
-    Labs_Core::Docker::Docker docker = Labs_Core::Docker::Docker();
+    Labs_Core::Docker docker = Labs_Core::Docker();
     static struct option long_flags[] = {
         {"help", no_argument, nullptr, 'h'},
         {"container", required_argument, nullptr, 'c'},
