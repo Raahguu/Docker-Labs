@@ -18,7 +18,7 @@ endif()
 find_package(CURL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-file(MAKE_DIRECTORY ${HEADER_DEST})
+#file(MAKE_DIRECTORY ${HEADER_DEST})
 
 add_custom_command(TARGET DockerLabsCore POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory
