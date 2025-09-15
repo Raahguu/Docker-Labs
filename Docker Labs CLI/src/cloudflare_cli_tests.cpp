@@ -27,11 +27,11 @@ int Labs_CLI::Cloudflare::Test_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth)
 {
     Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth);
     std::cout << "Creating bogus ingress rule." << std::endl;
-    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
+    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1");
     cloudflare.Create_Ingress(container);
     std::cout << "Created." << std::endl << "Waiting 10 seconds before update..." << std::endl;
     sleep(10);
-    container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
+    container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2");
     cloudflare.Update_Ingress(container);
     std::cout << "Updated." << std::endl << "Waiting 10 seconds before removal..." << std::endl;
     sleep(10);
@@ -44,7 +44,7 @@ int Labs_CLI::Cloudflare::Test_DNS(Labs_Core::Cloudflare::API_Auth cf_auth)
 {
     Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth);
     std::cout << "Creating bogus DNS record..." << std::endl;
-    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
+    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1");
     cloudflare.Create_DNS_Record(container);
     std::cout << "Waiting 1 second for lookup..." << std::endl;
     sleep(1);
@@ -60,7 +60,7 @@ int Labs_CLI::Cloudflare::Test_DNS(Labs_Core::Cloudflare::API_Auth cf_auth)
 int Labs_CLI::Cloudflare::Test_Application(Labs_Core::Cloudflare::API_Auth cf_auth)
 {
     Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth);
-    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
+    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1");
     std::cout << "Creating bogus Access Application..." << std::endl;
     cloudflare.Create_Application(container);
     std::cout << "Waiting 10 second before removal..." << std::endl;
@@ -75,7 +75,7 @@ int Labs_CLI::Cloudflare::Test_Application(Labs_Core::Cloudflare::API_Auth cf_au
 int Labs_CLI::Cloudflare::Test_Initialize(Labs_Core::Cloudflare::API_Auth cf_auth)
 {
     Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth);
-    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
+    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1");
     cloudflare.Create_Ingress(container);
     cloudflare.Create_DNS_Record(container);
     cloudflare.Create_Application(container);
@@ -91,7 +91,7 @@ int Labs_CLI::Cloudflare::Test_Initialize(Labs_Core::Cloudflare::API_Auth cf_aut
 
 int Labs_CLI::Cloudflare::Test_Grant_Policy(Labs_Core::Cloudflare::API_Auth cf_auth) {
     Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth);
-    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
+    Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1");
     Labs_Core::User add = Labs_Core::User("joshua.finlayson@cassa.au");
     Labs_Core::User remove = Labs_Core::User("laith.striegher@cassa.au");
     cloudflare.Create_Ingress(container);
