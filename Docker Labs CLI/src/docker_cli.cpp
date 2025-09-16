@@ -102,10 +102,10 @@ int Labs_CLI::Docker::Test_Container_Control(Labs_CLI::Command_Interpreter comma
 	std::cout << "Container Image: " << image << std::endl;
 	std::string status = docker.Get_Status(result) ? "up" : "down";
 	std::cout << "Container Status: " << status << std::endl;
-	std::vector<std::string> networks = docker.Get_Networks(result);
+	std::vector<Labs_Core::Network> networks = docker.Get_Networks(result);
 	std::cout << "Container Networks: " << std::endl;
-	for(std::string& network : networks){
-		std::cout << network << std::endl;
+	for(Labs_Core::Network network : networks){
+		std::cout << "\t" << network.Get_Name_Cache() << std::endl;
 	}
 	
 	docker.Restart(result);
@@ -144,6 +144,27 @@ int Labs_CLI::Docker::Test_Handler(Labs_CLI::Command_Interpreter command, int ar
 	return 1;
 }
 
+int Labs_CLI::Docker::Get_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {	
+	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
+
+
+	static std::map<std::string_view, std::function<int(Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
+		{"container", Labs_CLI::Docker::Get_Container_Info},
+		{"network", Labs_CLI::Docker::Get_Network_Info}
+	};
+
+	auto it = possible_commands.find(command.Get_SubCommand());
+	
+	if (it != possible_commands.end()){
+		return it->second(command, argc, argv);
+	} else {
+		std::cerr << "Unknown command: " << command.Get_SubCommand() << std::endl;
+		std::cerr << "Run '--help' or '-h' for help finding a command" << std::endl;
+		return 1;
+	}
+	return 1;
+}
+
 int Labs_CLI::Docker::Help(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	std::cout << "./labs-cli docker <command> [<subcommand>] [<flags>]" << std::endl;
 	std::cout << std::endl;
@@ -152,6 +173,13 @@ int Labs_CLI::Docker::Help(Labs_CLI::Command_Interpreter command, int argc, char
 	std::cout << "\ttest - group of commands for testing thr program works correctly" << std::endl;
 	std::cout << "\t\tapi - Tests that the HTTP API requests for docker are working" << std::endl;
 	std::cout << "\t\tcontainer-control - Tests if the container controls are working" << std::endl;
+	std::cout << "\tstart - Starts a docker container" << std::endl;
+	std::cout << "\tstop - Stops a running docker container" << std::endl;
+	std::cout << "\trestart - Restarts the docker container" << std::endl;
+	std::cout << "\treset - Resets a container back to its default image" << std::endl;
+	std::cout << "\tget - Group of commands for getting data on certain objects" << std::endl;
+	std::cout << "\t\tcontainer - Gets data about a specified container" << std::endl;
+	std::cout << "\t\tnetwork - Gets data about a specified network" << std::endl;
 	std::cout << std::endl;
 	std::cout << "Run './labs-cli docker <command> --help' for more info on a command" << std::endl;
 	return 0;
@@ -298,6 +326,203 @@ int Labs_CLI::Docker::Restart(Labs_CLI::Command_Interpreter command, int argc, c
 	return 0;
 }
 
+int Labs_CLI::Docker::Get_Container_Info(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
+	Labs_Core::Docker docker = Labs_Core::Docker();
+	static struct option long_flags[] = {
+		{"help", no_argument, nullptr, 'h'},
+		{"name", required_argument, nullptr, 'n'}, 
+		{"ip", required_argument, nullptr, 'i'},
+		{"id", required_argument, nullptr, 'd'},
+		{nullptr, 0, nullptr, 0}
+	};
+	
+	std::string name = "";
+	std::string ip = "";
+	std::string id = "";
+	
+	int opt;
+	while((opt=getopt_long(argc, argv, "hn:i:d:", long_flags, nullptr)) != -1) {
+		switch (opt) {
+			case 'h':
+				std::cout << "Gets the id, name, ip, image, status, and networks of a container" << std::endl;
+				std::cout << "Available flags:" << std::endl;
+				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
+				std::cout << "You must use one of the following flags" << std::endl;
+				std::cout << "\t-n, --name: Lets you specify the exact name of the container" << std::endl;
+				std::cout << "\t-d, --id: Lets you specify the exact id of the container" << std::endl;
+				std::cout << "\t-i, --ip: Lets you specify the exact ip of the container" << std::endl;
+				return 0;
+			case 'n': 
+				name = optarg;
+				continue;
+			case 'i':
+				ip = optarg;
+				continue;
+			case 'd':
+				id = optarg;
+				continue;
+			case '?':
+			default:
+				std::string temp = argv[optind - 1];
+				while (!temp.empty() && temp[0] == '-') {
+					temp.erase(0, 1);
+				}
+				std::cerr << "Unknown flag: " << temp << std::endl;
+				return 1;
+		}
+	}
+	
+	if(name == "" && ip == "" && id == ""){
+		std::cerr << "You must provide either a name, ip, or an id" << std::endl;
+		return 1;
+	}
+
+	std::optional<Labs_Core::Container> opt_container;
+
+	if (ip == "") {
+		opt_container = docker.Get_Container(name != "" ? name : id);
+	}
+	else {
+		std::vector<Labs_Core::Container> containers = docker.Get_All_Containers();
+		for (Labs_Core::Container con : containers) {
+			if (con.Get_IP_Cache() == ip) {
+				opt_container = con;
+				break;
+			}
+		}
+	}
+	if (!opt_container.has_value()) {
+		std::cerr << "No container has that IP " << ip << std::endl;
+		return 1;
+	}
+	
+	Labs_Core::Container container = opt_container.value();	
+	
+	std::string container_id = docker.Get_ID(container);
+	std::cout << "Container Id: " << container_id << std::endl;
+	std::string container_name = docker.Get_Name(container);
+	std::cout << "Container Name: " << container_name << std::endl;
+	std::string container_ip = docker.Get_IP(container);
+	std::cout << "Container IP: " << container_ip << std::endl;
+	std::string image = docker.Get_Image(container);
+	std::cout << "Container Image: " << image << std::endl;
+	std::string status = docker.Get_Status(container) ? "up" : "down";
+	std::cout << "Container Status: " << status << std::endl;
+	std::vector<Labs_Core::Network> networks = docker.Get_Networks(container);
+	std::cout << "Container Networks: " << std::endl;
+	for(Labs_Core::Network network : networks){
+		std::cout << "\t" << network.Get_Name_Cache() << std::endl;
+	}
+
+	return 0;
+}
+
+
+int Labs_CLI::Docker::Get_Network_Info(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
+	Labs_Core::Docker docker = Labs_Core::Docker();
+	static struct option long_flags[] = {
+		{"help", no_argument, nullptr, 'h'},
+		{"name", required_argument, nullptr, 'n'}, 
+		{"iprange", required_argument, nullptr, 'i'},
+		{"id", required_argument, nullptr, 'd'},
+		{"gateway", required_argument, nullptr, 'g'},
+		{"subnet", required_argument, nullptr, 's'},
+		{nullptr, 0, nullptr, 0}
+	};
+	
+	std::string name = "";
+	std::string iprange = "";
+	std::string id = "";
+	std::string gateway = "";
+	std::string subnet = "";
+	
+	int opt;
+	while((opt=getopt_long(argc, argv, "hn:i:d:g:s:", long_flags, nullptr)) != -1) {
+		switch (opt) {
+			case 'h':
+				std::cout << "Gets the Id, Name, IPRange, Gateway, Subnet, and containers of a container" << std::endl;
+				std::cout << "Available flags:" << std::endl;
+				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
+				std::cout << "You must use one of the following flags" << std::endl;
+				std::cout << "\t-n, --name: Lets you specify the exact name of the network" << std::endl;
+				std::cout << "\t-d, --id: Lets you specify the exact id of the network" << std::endl;
+				std::cout << "\t-i, --iprange: Lets you specify the exact ip of the network" << std::endl;
+				std::cout << "\t-g, --gateway: Lets you specify the exact gateway of the network" << std::endl;
+				std::cout << "\t-s, --subnet: Lets you specify the exact subnet of the network" << std::endl;
+				return 0;
+			case 'n': 
+				name = optarg;
+				continue;
+			case 'i':
+				iprange = optarg;
+				continue;
+			case 'd':
+				id = optarg;
+				continue;
+			case 'g':
+				gateway = optarg;
+				continue;
+			case 's':
+				subnet = optarg;
+				continue;
+			case '?':
+			default:
+				std::string temp = argv[optind - 1];
+				while (!temp.empty() && temp[0] == '-') {
+					temp.erase(0, 1);
+				}
+				std::cerr << "Unknown flag: " << temp << std::endl;
+				return 1;
+		}
+	}
+	
+	if(name == "" && iprange == "" && id == "" && gateway == "" && subnet == ""){
+		std::cerr << "You must provide either a name, iprange, id, gateway, or subnet" << std::endl;
+		return 1;
+	}
+
+	
+
+	std::vector<Labs_Core::Network> networks;
+
+	if (id != "" or name != "") {
+		networks.push_back(docker.Get_Network(id != "" ? id : name));
+	}
+	else {
+		std::vector<Labs_Core::Network> all_networks = docker.Get_All_Networks();
+		for (Labs_Core::Network network : all_networks) {
+			if ((iprange == "" || network.Get_IP_Range_Cache() == iprange) && (subnet == "" || subnet == network.Get_Subnet_Cache()) && (gateway == "" || gateway == network.Get_Gateway_Cache())) {
+				networks.push_back(network);
+			}
+		}
+
+		if (networks.size() == 0) {
+			std::cerr << "No networks fit those criteria" << std::endl;
+			return 1;
+		}
+	}
+	
+	bool looped_yet = false;
+
+	for (Labs_Core::Network network : networks) {
+		if (looped_yet) {std::cout << std::endl;}
+		else {looped_yet = true;}
+		std::cout << "Network Id: " << network.Get_ID() << std::endl;
+		std::cout << "Network Name: " << network.Get_Name_Cache() << std::endl;
+		std::cout << "Network IP Range: " << network.Get_IP_Range_Cache() << std::endl;
+		std::cout << "Network Gateway: " << network.Get_Gateway_Cache() << std::endl;
+		std::cout << "Network Subnet: " << network.Get_Subnet_Cache() << std::endl;
+		std::vector<Labs_Core::Container> containers = docker.Get_Networks_Containers(network);
+		std::cout << "Network's Containers: " << std::endl;
+		for(Labs_Core::Container container : containers){
+			container.Cache_Update();
+			std::cout << "\t" << container.Get_Name_Cache() << std::endl;
+		}
+	}
+
+	return 0;
+}
+
 int Labs_CLI::Docker::Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 
 	static std::map<std::string_view, std::function<int(Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
@@ -306,7 +531,8 @@ int Labs_CLI::Docker::Command_Handler(Labs_CLI::Command_Interpreter command, int
 		{"start", Labs_CLI::Docker::Start},
 		{"stop", Labs_CLI::Docker::Stop},
 		{"restart", Labs_CLI::Docker::Restart},
-		{"reset", Labs_CLI::Docker::Reset}
+		{"reset", Labs_CLI::Docker::Reset},
+		{"get", Labs_CLI::Docker::Get_Handler},
 	};
 
 	po::options_description desc("Allowed options");

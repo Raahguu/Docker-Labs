@@ -1,7 +1,10 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "labs_container.h"
+
+namespace Docker_Labs::Labs_Core {
+	class Container;
+}
 
 namespace Docker_Labs::Labs_Core {
 
@@ -16,6 +19,7 @@ namespace Docker_Labs::Labs_Core {
                 std::string Get_Subnet_Cache();
                 std::string Get_Gateway_Cache();
                 std::vector<Labs_Core::Container> Get_Containers_Cache();
+		std::string Get_IP_Range_Cache();
                 int Cache_Update();
         private:
                 std::string id;
@@ -23,6 +27,7 @@ namespace Docker_Labs::Labs_Core {
                 std::string subnet_cache;
                 std::string gateway_cache;
                 std::vector<Labs_Core::Container> containers_cache;
+		std::string IPRange;
 
         };
 

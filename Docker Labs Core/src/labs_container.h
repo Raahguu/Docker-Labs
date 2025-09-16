@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "labs_network.h"
 
 namespace Docker_Labs::Labs_Core {
 
@@ -14,19 +15,20 @@ namespace Docker_Labs::Labs_Core {
 		std::string Get_Name_Cache();
 		std::string Get_Image_Cache();
 		std::string Get_IP_Cache();
-		std::vector<std::string> Get_Networks_Cache();
+		std::vector<Labs_Core::Network> Get_Networks_Cache();
 		int Cache_Update();
 		int Start();
 		int Stop();
 		int Remove();
-		static Container Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks);
+		static Container Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<Labs_Core::Network> networks);
+		static Container Bogus(std::string id, std::string name, std::string image, std::string ip);
 
 	private:
 		std::string id;
 		std::string name_cache;
 		std::string image_cache;
 		std::string ip_cache;
-		std::vector<std::string> networks_cache;
+		std::vector<Labs_Core::Network> networks_cache;
 
 	};
 
