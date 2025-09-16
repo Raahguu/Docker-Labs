@@ -4,6 +4,7 @@
 #include "labs_container.h"
 
 namespace Docker_Labs::Labs_CLI::Cloudflare {
+	Labs_Core::Cloudflare::API_Auth Get_Auth();
 	int Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
 	int Get_Seats(Labs_Core::Cloudflare::API_Auth cf_auth);
 	int Fetch_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth);
@@ -24,4 +25,5 @@ namespace Docker_Labs::Labs_CLI::Cloudflare {
 
 	int Grant_Container(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
 	int Revoke_Container(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
+	int Help_Message(int argc, char* argv[]);
 }

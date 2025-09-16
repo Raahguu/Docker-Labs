@@ -15,10 +15,8 @@ namespace Docker_Labs::Labs_Core {
 			friend class Cloudflare;
 		public:
 			API_Auth();
-			//API_Auth(std::string account_id, std::string API_token);
-			static API_Auth Get_Auth();
-		private:
 			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
+		private:
 			static std::string Cin();
 			const std::string ACC;
 			const std::string ZONE;
@@ -68,7 +66,9 @@ namespace Docker_Labs::Labs_Core {
 		//int* Get_Members(Container container);
 		//int* Get_Authorised_Containers(User user);
 		// Global
-		int Init_Access(Container container, User user);
+		int Activate_Container(Container container, User user);
+		int Deactivate_Container(Container container);
+		int Deactivate_Container(Container container, bool keep_container);
 		//int Delete(Container container);
 		//int Delete(User user);
 	private:

@@ -20,32 +20,6 @@ std::string Labs_Core::Cloudflare::API_Auth::Cin()
 	std::cin >> input;
 	return input;
 }
-// Obsolete
-
-Labs_Core::Cloudflare::API_Auth Labs_Core::Cloudflare::API_Auth::Get_Auth()
-{
-	std::string ACC;
-    std::string ZONE;
-    std::string TUNN;
-    std::string TKN;
-    std::string DOMN;
-
-    std::cin >> ACC;
-    std::cin >> ZONE;
-    std::cin >> TUNN;
-    std::cin >> TKN;
-    std::cin >> DOMN;
-
-    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_Core::Cloudflare::API_Auth(
-        ACC,
-        ZONE,
-        TUNN,
-        TKN,
-        DOMN
-    );
-
-	return cf_auth;
-}
 
 // Cloudflare
 Labs_Core::Cloudflare::Cloudflare(const API_Auth& auth)
@@ -528,27 +502,46 @@ int Labs_Core::Cloudflare::Revoke_Container(Container container, User user)
 }
 
 
-int Labs_Core::Cloudflare::Init_Access(Container container, User user)
+int Labs_Core::Cloudflare::Activate_Container(Container container, User user)
 {
 	Labs_Core::Docker docker = Labs_Core::Docker();
 	bool err_count = 0; // Let bool alg apply :)
 	docker.Start(container);
-	sleep(1);
 	container.Cache_Update();
 	std::cout << "Fetched container information." << std::endl;
 	std::cout << "Deploying to cloudflare..." << std::endl;
-	err_count += Create_Ingress(container);
+	err_count = err_count + Create_Ingress(container);
 	std::cout << " - Created ingress rule." << std::endl;
-	err_count += Create_DNS_Record(container);
+	err_count = err_count + Create_DNS_Record(container);
 	std::cout << " - Created DNS record." << std::endl;
 	std::string app_name = "SSH Application for '" +user.Get_Email() + "' (" + container.Get_Name_Cache().substr(container.Get_Name_Cache().length() - 3) +")";
-	err_count += Create_Application(container, app_name);
+	err_count = err_count + Create_Application(container, app_name);
 	std::cout << " - Created Access application." << std::endl;
-	err_count += Initialize_Policy(container, user);
+	err_count = err_count + Initialize_Policy(container, user);
 	std::cout << " - Assigned default Access policy." << std::endl;
 	std::cout << " - Granted access to '" << user.Get_Email() << "'" << std::endl;
 	std::cout << "Finished. Access container from https://" + container.Get_Name_Cache() + "-" + auth.DOMN << std::endl;
 	return err_count;
 }
 
+int Docker_Labs::Labs_Core::Cloudflare::Deactivate_Container(Container container)
+{
+	return Deactivate_Container(container, true);
+}
 
+int Docker_Labs::Labs_Core::Cloudflare::Deactivate_Container(Container container, bool keep_container)
+{
+	container.Cache_Update();
+	Remove_Application(container);
+	Remove_DNS_Record(container);
+	Remove_Ingress(container);
+
+	if (keep_container == false) {
+		container.Remove();
+	}
+	else {
+		container.Stop();
+	}
+
+	return 0;
+}

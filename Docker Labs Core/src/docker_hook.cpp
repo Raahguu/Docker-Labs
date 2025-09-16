@@ -416,12 +416,14 @@ int Labs_Core::Docker::Create_Network(std::string network_name, std::string subn
 	if (response["httpCode"] != 201) {
 		throw "Error";
 	}
+
+	return 0;
 }
-int Labs_Core::Docker::Delete_Network(Labs_Core::Network network) {};
-int Labs_Core::Docker::Add_To_Network(Labs_Core::Network network) {};
-int Labs_Core::Docker::Remove_From_Network(Labs_Core::Network network) {};
-std::string Labs_Core::Docker::Get_ID(Labs_Core::Network network) {};
-std::string Labs_Core::Docker::Get_Subnet(Labs_Core::Network network) {};
-std::string Labs_Core::Docker::Get_Gateway(Labs_Core::Network network) {};
-std::string Labs_Core::Docker::Get_IP_Range(Labs_Core::Network network) {};
-std::vector<Labs_Core::Container> Labs_Core::Docker::Get_Networks_Container(Labs_Core::Network network) {};
+int Labs_Core::Docker::Delete_Network(Labs_Core::Network network) { return 0; };
+int Labs_Core::Docker::Add_To_Network(Labs_Core::Network network) { return 0; };
+int Labs_Core::Docker::Remove_From_Network(Labs_Core::Network network) { return 0; }
+std::string Labs_Core::Docker::Get_ID(Labs_Core::Network network) { return std::string(); };
+std::string Labs_Core::Docker::Get_Subnet(Labs_Core::Network network) { return std::string(); };
+std::string Labs_Core::Docker::Get_Gateway(Labs_Core::Network network) { return std::string(); };
+std::string Labs_Core::Docker::Get_IP_Range(Labs_Core::Network network) { return std::string(); };
+std::vector<Labs_Core::Container> Labs_Core::Docker::Get_Networks_Container(Labs_Core::Network network) { return {}; };

@@ -2,18 +2,66 @@
 #include "cloudflare_cli_tests.h"
 #include "cloudflare_hook.h"
 #include "docker_hook.h"
+#include "boost/program_options.hpp"
+#ifdef _WIN32
+#include <io.h>
+#define isPiped() !_isatty(_fileno(stdin))
+#else
+#include <unistd.h>
+#define isPiped() !isatty(fileno(stdin))
+#endif
 
 using namespace Docker_Labs;
+namespace po = boost::program_options;
 
-int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {
-    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_Core::Cloudflare::API_Auth::Get_Auth();
+Labs_Core::Cloudflare::API_Auth Labs_CLI::Cloudflare::Get_Auth()
+{
+    if (!isPiped()) {
+        std::cout << "Error. Cloudflare keys must be piped." << std::endl;
+        exit(1);
+    }
+    std::string ACC;
+    std::string ZONE;
+    std::string TUNN;
+    std::string TKN;
+    std::string DOMN;
 
+    std::cin >> ACC;
+    std::cin >> ZONE;
+    std::cin >> TUNN;
+    std::cin >> TKN;
+    std::cin >> DOMN;
+
+    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_Core::Cloudflare::API_Auth(
+        ACC,
+        ZONE,
+        TUNN,
+        TKN,
+        DOMN
+    );
+
+    return cf_auth;
+}
+
+int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {  
+    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
+
+
+    // Sub-command mappings for fetch operations
     static std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth)>> fetch_commands = {
+        //                                     ^ A ^---------------------------- B
         {"seats",       Get_Seats},
         {"ingress",     Fetch_Ingress},
         {"dns",         Fetch_DNS_Records}
+        //^ C           ^-------------- D
+
+        // A: the return type of the sub-command functions.
+        // B: the parameter type of the sub-command functions.
+        // C: the command-line sub-command.
+        // D: the program function to execute with the parameters in 'B'.
     };
 
+    // Sub-command mappings for test operations
     static std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth)>> test_commands = {
         {"api",         Test_API},
         {"ingress",     Test_Ingress},
@@ -24,6 +72,7 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
         {"grant",       Test_Grant_Policy}
     };
 
+    // Sub-command mappings for create operations
     static std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth, int, char**)>> create_commands = {
         {"ingress",     Create_Ingress},
         {"dns",         Create_DNS},
@@ -31,6 +80,7 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
         {"application", Create_Application}
     };
 
+    // Sub-command mappings for remove operations
     static std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth, int, char**)>> remove_commands = {
         {"ingress",     Remove_Ingress},
         {"dns",         Remove_DNS},
@@ -38,7 +88,10 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
         {"application", Remove_Application}
     };
 
-    if (command.Get_Command() == "fetch") {
+    // Cloudflare partition commands
+    std::string command_str = command.Get_Command();
+    if (command_str == "fetch") {
+        // Map to fetch sub-commands
         std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth)>>::iterator
             it = fetch_commands.find(command.Get_SubCommand());
 
@@ -46,7 +99,10 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
             return it->second(cf_auth);
         }
     }
-    else if (command.Get_Command() == "test") {
+    else if (command_str == "test") {
+        std::cout << "test" << std::endl;
+
+        // Map to test sub-commands
         std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth)>>::iterator
             it = test_commands.find(command.Get_SubCommand());
 
@@ -54,7 +110,8 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
             return it->second(cf_auth);
         }
     }
-    else if (command.Get_Command() == "create") {
+    else if (command_str == "create") {
+        // Map to create sub-commands
         std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth, int, char**)>>::iterator
             it = create_commands.find(command.Get_SubCommand());
 
@@ -62,7 +119,8 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
             return it->second(cf_auth, argc, argv);
         }
     }
-    else if (command.Get_Command() == "remove") {
+    else if (command_str == "remove") {
+        // Map to remove sub-commands
         std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth, int, char**)>>::iterator
             it = remove_commands.find(command.Get_SubCommand());
 
@@ -70,16 +128,23 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
             return it->second(cf_auth, argc, argv);
         }
     }
-    else if (command.Get_Command() == "update") {
+    else if (command_str == "update") {
+        // Map to update
         return Update_Ingress(cf_auth, argc, argv);
     }
-    else if (command.Get_Command() == "grant") {
+    else if (command_str == "grant") {
+        // Map to grant
         return Grant_Container(cf_auth, argc, argv);
     }
-    else if (command.Get_Command() == "revoke") {
+    else if (command_str == "revoke") {
+        // Map to revoke
         return Revoke_Container(cf_auth, argc, argv);
     }
-    return 1;
+    else {
+        return Help_Message(argc, argv);
+    }
+
+    return Help_Message(argc, argv);
 }
 
 
@@ -128,39 +193,29 @@ int Labs_CLI::Cloudflare::Fetch_DNS_Records(Labs_Core::Cloudflare::API_Auth cf_a
 Labs_Core::Container Labs_CLI::Cloudflare::Spec_Container(int argc, char* argv[])
 {
     Labs_Core::Docker docker = Labs_Core::Docker();
-    static struct option long_flags[] = {
-        {"help", no_argument, nullptr, 'h'},
-        {"container", required_argument, nullptr, 'c'},
-        { nullptr, 0, nullptr, 0 }
-    };
 
-    std::string container_name = "";
+    std::string container_name;
+    // Define the options
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "Shows this popup")
+        ("container,c", po::value<std::string>(&container_name)->required(), "Specifies the name of the container");
 
-    int opt;
-    int long_index;
-    while ((opt = getopt_long(argc, argv, "hc:", long_flags, &long_index)) != -1) {
-        switch (opt) {
-        case 'h':
-            std::cout << "-h, --help: shows this popup" << std::endl;
-            std::cout << "-c, --container: [Required] specifies the name of the container" << std::endl;
-            throw 0;
-        case 'c':
-            container_name = optarg;
-            continue;
-        case '?':
-        default:
-            std::string temp = argv[optind - 1];
-            while (!temp.empty() && temp[0] == '-') {
-                temp.erase(0, 1);
-            }
-            std::cerr << "Unknown flag: " << temp << std::endl;
-            throw 0;
-        }
+    // Parse the command line arguments
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm); // Throws if required options are missing
     }
-    
-    if (container_name == "") {
-    	std::cerr << "You must specify the container name" << std::endl;
-    	throw 0;
+    catch (const po::error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << desc << std::endl;
+        exit(1);
+    }
+
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        exit(0);
     }
     
     Labs_Core::Container cont = docker.Get_Container(container_name);
@@ -170,50 +225,33 @@ Labs_Core::Container Labs_CLI::Cloudflare::Spec_Container(int argc, char* argv[]
 std::tuple<Labs_Core::Container, Labs_Core::User> Labs_CLI::Cloudflare::Spec_Container_User(int argc, char* argv[])
 {
     Labs_Core::Docker docker = Labs_Core::Docker();
-    static struct option long_flags[] = {
-        {"help", no_argument, nullptr, 'h'},
-        {"container", required_argument, nullptr, 'c'},
-        {"user", required_argument, nullptr, 'u'},
-        { nullptr, 0, nullptr, 0 }
-    };
-
     std::string container_name = "";
     std::string user = "";
 
-    int opt;
-    int long_index;
-    while ((opt = getopt_long(argc, argv, "hc:u:", long_flags, &long_index)) != -1) {
-        switch (opt) {
-        case 'h':
-            std::cout << "-h, --help: Shows this popup" << std::endl;
-            std::cout << "-c, --container: [Required] Specifies the container name" << std::endl;
-            std::cout << "-u, --user: [Required] Specify the email of the user" << std::endl;
-            throw 0;
-        case 'c':
-            container_name = optarg;
-            continue;
-        case 'u':
-            user = optarg;
-            continue;
-        case '?':
-        default:
-            std::string temp = argv[optind - 1];
-            while (!temp.empty() && temp[0] == '-') {
-                temp.erase(0, 1);
-            }
-            std::cerr << "Unknown flag: " << temp << std::endl;
-            throw 0;
-        }
+    // Define the options
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "Shows this popup")
+        ("container,c", po::value<std::string>(&container_name)->required(), "Specifies the container name")
+        ("user,u", po::value<std::string>(&user)->required(), "Specify the email of the user");
+
+    // Parse the command line arguments
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm); // Throws if required options are missing
     }
-    
-    if (container_name == "") {
-    	std::cerr << "must specify a container name" << std::endl;
-    	throw 0;
+    catch (const po::error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << desc << std::endl;
+        exit(1);
     }
-    if (user == "") {
-    	std::cerr << "must specify a user" << std::endl;
-    	throw 0;
+
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        exit(1);
     }
+
     
     std::tuple<Labs_Core::Container, Labs_Core::User> cont_usr = std::tuple<Labs_Core::Container, Labs_Core::User>(docker.Get_Container(container_name), Labs_Core::User(user));
     std::get<Labs_Core::Container>(cont_usr).Cache_Update();
@@ -269,3 +307,6 @@ int Labs_CLI::Cloudflare::Revoke_Container(Labs_Core::Cloudflare::API_Auth cf_au
     return Labs_Core::Cloudflare(cf_auth).Revoke_Container(std::get<Labs_Core::Container>(container_user), std::get<Labs_Core::User>(container_user));
 }
 
+int Labs_CLI::Cloudflare::Help_Message(int argc, char* argv[]) {
+    return 0;
+}

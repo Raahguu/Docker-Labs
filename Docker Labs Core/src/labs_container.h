@@ -16,6 +16,9 @@ namespace Docker_Labs::Labs_Core {
 		std::string Get_IP_Cache();
 		std::vector<std::string> Get_Networks_Cache();
 		int Cache_Update();
+		int Start();
+		int Stop();
+		int Remove();
 		static Container Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks);
 
 	private:

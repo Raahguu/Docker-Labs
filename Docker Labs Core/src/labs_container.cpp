@@ -33,6 +33,21 @@ int Labs_Core::Container::Cache_Update() {
 	return 0;
 }
 
+int Labs_Core::Container::Start() {
+	Labs_Core::Docker docker = Labs_Core::Docker();
+	return docker.Start(*this);
+}
+
+int Labs_Core::Container::Stop() {
+	Labs_Core::Docker docker = Labs_Core::Docker();
+	return docker.Start(*this);
+}
+
+int Labs_Core::Container::Remove() {
+	Labs_Core::Docker docker = Labs_Core::Docker();
+	return docker.Remove(*this);
+}
+
 Labs_Core::Container Labs_Core::Container::Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks)
 {
 	Container bogus_container = Container(id);

@@ -5,8 +5,16 @@ cmake_minimum_required (VERSION 3.11)
 
 project(DockerLabsWeb)
 
-set(DockerLabsCore "${CMAKE_CURRENT_BINARY_DIR}/../Docker Labs Core/libDockerLabsCore.so")
-set(DockerLabsCoreHeaders "${CMAKE_CURRENT_BINARY_DIR}/../Docker Labs Core/include")
+if(UNIX)
+	set(DockerLabsCore "${CMAKE_BINARY_DIR}/Docker Labs Core/libDockerLabsCore.so")
+	set(DockerLabsCoreHeaders "${CMAKE_BINARY_DIR}/Docker Labs Core/include")
+elseif(WIN32)
+	set(DockerLabsCore "${CMAKE_BINARY_DIR}/Docker Labs Core/DockerLabsCore.dll")
+	set(DockerLabsCoreHeaders "${CMAKE_BINARY_DIR}/Docker Labs Core/include")
+else()
+	message(FATAL_ERROR "Unsupported platform.")
+endif()
+
 file(GLOB SOURCES "src/*.cpp")
 
 message(STATUS ${DockerLabsCore})

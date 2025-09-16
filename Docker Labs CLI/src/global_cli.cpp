@@ -1,107 +1,96 @@
 #include <random>
+#include <boost/program_options.hpp>
 #include "global_cli.h"
+#include "cloudflare_cli.h"
 
 using namespace Docker_Labs;
+namespace po = boost::program_options;
 
 int Labs_CLI::Global_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {
-    Labs_Core::Docker docker = Labs_Core::Docker();
-    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_Core::Cloudflare::API_Auth::Get_Auth();
-    Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth, false);
-    bool keep_container = false;
-
-    static struct option long_flags[] = {
-        {"help", no_argument, nullptr, 'h'},
-        {"user", required_argument, nullptr, 'u'},
-        {"image", required_argument, nullptr, 'i'},
-        {"name", required_argument, nullptr, 'n'},
-        {"keep", no_argument, nullptr, 'n'},
-        { nullptr, 0, nullptr, 0 }
-    };
-
-    std::string email = "";
-    std::string image = "";
-    std::string container_name = "";
-
-    int opt;
-    int long_index;
-    while ((opt = getopt_long(argc, argv, "hu:i:n:k", long_flags, &long_index)) != -1) {
-        switch (opt) {
-        case 'h':
-            std::cout << "A command used to create a container and setup the cloudflare rules for it in one." << std::endl;
-            std::cout << "\t-h, --help: used to show this (hopfully) helpful popup about how to use this command" << std::endl;
-            std::cout << "\t-u --user: [Required] provide an email that the container by default allows access to" << std::endl;
-            std::cout << "\t-i --image: [Required] provide the image that the container should be created from" << std::endl;
-            std::cout << "\t-n, --name: used to set a custome name for a container" << std::endl;
-            // RM stuff
-            std::cout << "A command used to stop a container and remove the cloudflare rules for it in one." << std::endl;
-            std::cout << "\t-h, --help: used to show this (hopfully) helpful popup about how to use this command" << std::endl;
-            std::cout << "\t-n, --name: [Required] the name of the container you want to be removed" << std::endl;
-            std::cout << "\t-k, --keep-container: don't delete the container, but do delete all the cloudflare rules" << std::endl;
-            // Nuke suff
-            std::cout << "A command used to remove all containers and remove all the cloudflare rules for them in one." << std::endl;
-            std::cout << "\t-h, --help: used to show this (hopfully) helpful popup about how to use this command" << std::endl;
-            std::cout << "\t-k, --keep-containers: Only stop the containers not kill them" << std::endl;
-            return 0;
-        case 'u':
-            email = optarg;
-            continue;
-        case 'i':
-            image = optarg;
-            continue;
-        case 'n':
-            container_name = optarg;
-            continue;
-        case 'k':
-            keep_container = true;
-            continue;
-        case '?':
-        default:
-            std::string temp = argv[optind - 1];
-            while (!temp.empty() && temp[0] == '-') {
-                temp.erase(0, 1);
-            }
-            std::cerr << "Unknown flag: " << temp << std::endl;
-            return 1;
-        }
-    }
-
     if (command.Get_Partition() == "add") {
-
-        if (container_name == "") {
-            return Init_Handler(cloudflare, docker, email, image);
-        }
-        else {
-            return Init_Handler(cloudflare, docker, email, image, container_name);
-        }
+        return Init_Handler(argc, argv);
     }
     else if (command.Get_Partition() == "rm") {
-        return Rm_Handler(cloudflare, docker, container_name, keep_container);
+        return Rm_Handler(argc, argv);
     }
     else if (command.Get_Partition() == "nuke") {
-        return Nuke(cloudflare, docker, keep_container);
+        return Nuke(argc, argv);
+    }
+    else {
+        // Define the options
+        po::options_description desc("Allowed options");
+        desc.add_options()
+            ("help,h", "Show help message");
+
+        // Parse the command line arguments
+        po::variables_map vm;
+        try {
+            po::store(po::parse_command_line(argc, argv, desc), vm);
+            po::notify(vm); // Throws if required options are missing
+        }
+        catch (const po::error& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            std::cerr << desc << std::endl;
+            return 1;
+        }
+
+        if (vm.count("help")) {
+            std::cout << "A command used to create a container and setup the cloudflare rules for it in one." << std::endl;
+            std::cout << desc << std::endl;
+            return 0;
+        }
     }
     return 1;
 }
 
-int Labs_CLI::Init_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker docker, std::string email, std::string image) {
-    return Init_Handler(cloudflare, docker, email, image, "");
-}
-
-int Labs_CLI::Init_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker docker, std::string email, std::string image, std::string container_name)
+int Labs_CLI::Init_Handler(int argc, char* argv[])
 {
+    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
+    Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth, false);
+    Labs_Core::Docker docker = Labs_Core::Docker();
+
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(0, 35);
+
+    std::string email;
+    std::string image;
+    std::string container_name;
+
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "Show help message")
+        ("user,u", po::value<std::string>(&email)->required(), "Provide an email that the container by default allows access to")
+        ("image,i", po::value<std::string>(&image)->required(), "Provide the image that the container should be created from")
+        ("name,n", po::value<std::string>(&container_name), "Set a custom name for a container");
+
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm); // Throws if required options are missing
+    }
+    catch (const po::error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("help")) {
+        std::cout << "A command used to create a container and setup the cloudflare rules for it in one." << std::endl;
+        std::cout << desc << std::endl;
+        return 0;
+    }
+
     static const std::string chars =
         "0123456789"
         "abcdefghijklmnopqrstuvwxyz";
 
-    if (email == ""){
-    	std::cerr << "You must provide an email";
-    	return 1;
+    if (email.empty()){
+        std::cerr << "You must specify the user email." << std::endl;
+        return 1;
     }
-    if (image == ""){
-    	std::cerr << "You must provide an image";
+    if (image.empty()){
+        std::cerr << "You must specify an image" << std::endl;
     	return 1;
     }
 
@@ -124,39 +113,83 @@ int Labs_CLI::Init_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker d
 
     Labs_Core::Container container = docker.Create_Container(container_name, image);
    
-    cloudflare.Init_Access(container, Labs_Core::User(email));
+    cloudflare.Activate_Container(container, Labs_Core::User(email));
     return 0;
 }
 
-int Labs_CLI::Rm_Handler(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker docker, std::string container_name, bool keep_container)
+int Labs_CLI::Rm_Handler(int argc, char* argv[])
 {
-    std::cout << container_name << std::endl;
+    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
+    Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth, false);
+    Labs_Core::Docker docker = Labs_Core::Docker();
+    
+    bool keep_container;
+    std::string container_name;
+
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "Show help message")
+        ("name,n", po::value<std::string>(&container_name), "The name of the container to be removed from cloudflare.")
+        ("keep-container,k", po::bool_switch(&keep_container), "If the local docker container should be removed.");
+
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm); // Throws if required options are missing
+    }
+    catch (const po::error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("help")) {
+        std::cout << "A command used to create a container and setup the cloudflare rules for it in one." << std::endl;
+        std::cout << desc << std::endl;
+        return 0;
+    }
+
     Labs_Core::Container container = docker.Get_Container(container_name);
-    container.Cache_Update();
-    cloudflare.Remove_Application(container);
-    cloudflare.Remove_DNS_Record(container);
-    cloudflare.Remove_Ingress(container);
-
-    if (keep_container == false) {
-        docker.Remove(container);
-    }
-    else {
-        docker.Stop(container);
-    }
-
+    cloudflare.Deactivate_Container(container, keep_container);
     return 0;
 }
 
-int Labs_CLI::Nuke(Labs_Core::Cloudflare cloudflare, Labs_Core::Docker docker, bool keep_containers)
+int Labs_CLI::Nuke(int argc, char* argv[])
 {
+    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
+    Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth, false);
+    Labs_Core::Docker docker = Labs_Core::Docker();
 
+    bool keep_containers;
+
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "Show help message")
+        ("keep-container,k", po::bool_switch(&keep_containers), "If the local docker containers should be removed.");
+
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm); // Throws if required options are missing
+    }
+    catch (const po::error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << desc << std::endl;
+        return 1;
+    }
+
+    if (vm.count("help")) {
+        std::cout << "A command used to create a container and setup the cloudflare rules for it in one." << std::endl;
+        std::cout << desc << std::endl;
+        return 0;
+    }
 
     std::vector<Labs_Core::Container> containers = docker.Get_All_Containers();
 
     bool err = false;
 
     for (Labs_Core::Container container : containers) {
-        err += (bool)Labs_CLI::Rm_Handler(cloudflare, docker, container.Get_Name_Cache(), keep_containers);
+        err = err + (bool)cloudflare.Deactivate_Container(container, keep_containers);
     }
 
     return err;

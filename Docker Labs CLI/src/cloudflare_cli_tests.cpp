@@ -1,4 +1,5 @@
-#include <unistd.h>
+#include <thread>
+#include <chrono>
 #include "cloudflare_cli_tests.h"
 #include "cloudflare_cli.h"
 
@@ -30,11 +31,11 @@ int Labs_CLI::Cloudflare::Test_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth)
     Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     cloudflare.Create_Ingress(container);
     std::cout << "Created." << std::endl << "Waiting 10 seconds before update..." << std::endl;
-    sleep(10);
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "172.17.0.2", { "a", "b" });
     cloudflare.Update_Ingress(container);
     std::cout << "Updated." << std::endl << "Waiting 10 seconds before removal..." << std::endl;
-    sleep(10);
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     cloudflare.Remove_Ingress(container);
     std::cout << "Removed." << std::endl;
 
@@ -47,11 +48,11 @@ int Labs_CLI::Cloudflare::Test_DNS(Labs_Core::Cloudflare::API_Auth cf_auth)
     Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "laith_striegher_cassa_au_b0g", "image", "127.0.0.1", { "a", "b" });
     cloudflare.Create_DNS_Record(container);
     std::cout << "Waiting 1 second for lookup..." << std::endl;
-    sleep(1);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     Labs_CLI::Cloudflare::Fetch_DNS_Records(cf_auth);
     std::cout << "Confirm the bogus record is in the list above." << std::endl << std::endl;
-    std::cout << "Waiting 9 seconds before removal..." << std::endl;
-    sleep(9);
+    std::cout << "Waiting 10 seconds before removal..." << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     cloudflare.Remove_DNS_Record(container);
     std::cout << "Removed." << std::endl;
 
@@ -64,7 +65,7 @@ int Labs_CLI::Cloudflare::Test_Application(Labs_Core::Cloudflare::API_Auth cf_au
     std::cout << "Creating bogus Access Application..." << std::endl;
     cloudflare.Create_Application(container);
     std::cout << "Waiting 10 second before removal..." << std::endl;
-    sleep(10);
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     cloudflare.Remove_Application(container);
     std::cout << "Removed." << std::endl;
 
@@ -81,7 +82,7 @@ int Labs_CLI::Cloudflare::Test_Initialize(Labs_Core::Cloudflare::API_Auth cf_aut
     cloudflare.Create_Application(container);
     std::cout << "Full bogus exposed in cloudflare." << std::endl;
     std::cout << "Waiting 10 seconds before removal..." << std::endl;
-    sleep(10);
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     cloudflare.Remove_Application(container);
     cloudflare.Remove_DNS_Record(container);
     cloudflare.Remove_Ingress(container);
@@ -101,7 +102,7 @@ int Labs_CLI::Cloudflare::Test_Grant_Policy(Labs_Core::Cloudflare::API_Auth cf_a
     cloudflare.Revoke_Container(container, remove);
     std::cout << "Full bogus exposed in cloudflare." << std::endl;
     std::cout << "Waiting for 90 seconds before removal..." << std::endl;
-    sleep(90);
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     cloudflare.Remove_Application(container);
     cloudflare.Remove_DNS_Record(container);
     cloudflare.Remove_Ingress(container);

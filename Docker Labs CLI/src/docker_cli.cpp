@@ -1,39 +1,39 @@
 #include "docker_cli.h"
 #include "docker_hook.h"
+#include <boost/program_options.hpp>
 
 using namespace Docker_Labs;
+namespace po = boost::program_options;
 
 int Labs_CLI::Docker::Test_API(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	int returnCode = 0;	
 
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'}, // --help maps to 'h'
-		{"code", no_argument, nullptr, 'c'}, // --code maps to 'c'
-		{nullptr, 0, nullptr, 0}
-	};
+
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers")
+		("code,c", "Outputs the exact HTTP code the API returns rather than a human-readable message");
 	
-	int opt;
-	while((opt=getopt_long(argc, argv, "hc", long_flags, nullptr)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "Tests that the HTTP API requests for docker are working" << std::endl;
-				std::cout << "Available flags:" << std::endl;
-				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "\t-c, --code: Outputs the exact HTTP code the API returns with rather then a human readable message" << std::endl;
-				return 0;
-			case 'c':
-				returnCode = 1;
-				continue;
-			case '?':
-			default:
-				std::string temp = argv[optind - 1];
-				while (!temp.empty() && temp[0] == '-') {
-					temp.erase(0, 1);
-				}
-				std::cerr << "Unknown flag: " << temp << std::endl;
-				return 1;
-		}
+	po::variables_map vm;
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm); // Throws if required options are missing
+	}
+	catch (const po::error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
+		return 1;
+	}
+
+	if (vm.count("help")) {
+		std::cout << "Tests that the HTTP API requests for docker are working" << std::endl;
+		std::cout << desc << std::endl;
+		return 0;
+	}
+
+	if (vm.count("code")) {
+		returnCode = true; // Set returnCode to true if --code is provided
 	}
 	
 	int result = docker.Test_API();
@@ -60,52 +60,34 @@ int Labs_CLI::Docker::Test_API(Labs_CLI::Command_Interpreter command, int argc, 
 
 int Labs_CLI::Docker::Test_Container_Control(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'},
-		{"name", required_argument, nullptr, 'n'}, 
-		{"image", required_argument, nullptr, 'i'},
-		{nullptr, 0, nullptr, 0}
-	};
-	
 	std::string name = "";
 	std::string image = "";
+
+	// Define options
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers")
+		("name,n", po::value<std::string>(&name)->required(), "Lets you change the exact name of the container")
+		("image,i", po::value<std::string>(&image)->required(), "Lets you change the exact image of the container");
 	
-	int opt;
-	while((opt=getopt_long(argc, argv, "hn:i:", long_flags, nullptr)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "Tests if the container control commands are working correctly" << std::endl;
-				std::cout << "Available flags:" << std::endl;
-				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "\t-n, --name: [Required] Lets you change the exact name of the container" << std::endl;
-				std::cout << "\t-i, --image: [Required] Lets you change the exact image of the container" << std::endl;
-				return 0;
-			case 'n': 
-				name = optarg;
-				continue;
-			case 'i':
-				image = optarg;
-				continue;
-			case '?':
-			default:
-				std::string temp = argv[optind - 1];
-				while (!temp.empty() && temp[0] == '-') {
-					temp.erase(0, 1);
-				}
-				std::cerr << "Unknown flag: " << temp << std::endl;
-				return 1;
-		}
+	// Parse the command line arguments
+	po::variables_map vm;
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm); // Throws if required options are missing
 	}
-	
-	if(image == ""){
-		std::cerr << "You must provide an image" << std::endl;
+	catch (const po::error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
 		return 1;
 	}
-	if(name == ""){
-		std::cerr << "You must provide a name" << std::endl;
-		return 1;
-	}
-	
+
+	if (vm.count("help")) {
+		std::cout << "Tests if the container control commands are working correctly" << std::endl;
+		std::cout << "Available flags:" << std::endl;
+		std::cout << desc << std::endl;
+		return 0;
+	}	
 	
 	Labs_Core::Container result = docker.Create_Container(name, image);
 	docker.Start(result);
@@ -145,9 +127,6 @@ int Labs_CLI::Docker::Test_Container_Control(Labs_CLI::Command_Interpreter comma
 
 
 int Labs_CLI::Docker::Test_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
-	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
-
-
 	static std::map<std::string_view, std::function<int(Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
 		{"api", Labs_CLI::Docker::Test_API},
 		{"container-control", Labs_CLI::Docker::Test_Container_Control}
@@ -180,40 +159,31 @@ int Labs_CLI::Docker::Help(Labs_CLI::Command_Interpreter command, int argc, char
 
 int Labs_CLI::Docker::Start(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'},
-		{"name", required_argument, nullptr, 'n'}, 
-		{nullptr, 0, nullptr, 0}
-	};
-	
 	std::string name = "";
-	
-	int opt;
-	while((opt=getopt_long(argc, argv, "hn:", long_flags, nullptr)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "Starts the specified container" << std::endl;
-				std::cout << "Available flags:" << std::endl;
-				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "\t-n, --name: [Required] Lets you specify the name of the container" << std::endl;
-				return 0;
-			case 'n': 
-				name = optarg;
-				continue;
-			case '?':
-			default:
-				std::string temp = argv[optind - 1];
-				while (!temp.empty() && temp[0] == '-') {
-					temp.erase(0, 1);
-				}
-				std::cerr << "Unknown flag: " << temp << std::endl;
-				return 1;
-		}
+
+	// Define the options
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers")
+		("name,n", po::value<std::string>(&name)->required(), "Lets you specify the name of the container");
+
+	// Parse the command line arguments
+	po::variables_map vm;
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm); // Throws if required options are missing
 	}
-	
-	if(name == ""){
-		std::cerr << "You must provide a name" << std::endl;
+	catch (const po::error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
 		return 1;
+	}
+
+	if (vm.count("help")) {
+		std::cout << "Starts the specified container" << std::endl;
+		std::cout << "Available flags:" << std::endl;
+		std::cout << desc << std::endl;
+		return 0;
 	}
 	
 	
@@ -225,42 +195,32 @@ int Labs_CLI::Docker::Start(Labs_CLI::Command_Interpreter command, int argc, cha
 
 int Labs_CLI::Docker::Stop(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'},
-		{"name", required_argument, nullptr, 'n'}, 
-		{nullptr, 0, nullptr, 0}
-	};
-	
 	std::string name = "";
-	
-	int opt;
-	while((opt=getopt_long(argc, argv, "hn:", long_flags, nullptr)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "Stops the specified container" << std::endl;
-				std::cout << "Available flags:" << std::endl;
-				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "\t-n, --name: [Required] Lets you specify the name of the container" << std::endl;
-				return 0;
-			case 'n': 
-				name = optarg;
-				continue;
-			case '?':
-			default:
-				std::string temp = argv[optind - 1];
-				while (!temp.empty() && temp[0] == '-') {
-					temp.erase(0, 1);
-				}
-				std::cerr << "Unknown flag: " << temp << std::endl;
-				return 1;
-		}
+
+	// Define the options
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers")
+		("name,n", po::value<std::string>(&name)->required(), "Lets you specify the name of the container");
+
+	// Parse the command line arguments
+	po::variables_map vm;
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm); // Throws if required options are missing
 	}
-	
-	if(name == ""){
-		std::cerr << "You must provide a name" << std::endl;
+	catch (const po::error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
 		return 1;
 	}
-	
+
+	if (vm.count("help")) {
+		std::cout << "Stops the specified container" << std::endl;
+		std::cout << "Available flags:" << std::endl;
+		std::cout << desc << std::endl;
+		return 0;
+	}
 	
 	Labs_Core::Container result = docker.Get_Container(name);
 	docker.Stop(result);
@@ -270,42 +230,32 @@ int Labs_CLI::Docker::Stop(Labs_CLI::Command_Interpreter command, int argc, char
 
 int Labs_CLI::Docker::Reset(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'},
-		{"name", required_argument, nullptr, 'n'}, 
-		{nullptr, 0, nullptr, 0}
-	};
-	
 	std::string name = "";
-	
-	int opt;
-	while((opt=getopt_long(argc, argv, "hn:", long_flags, nullptr)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "Resets the specified container back to its default state" << std::endl;
-				std::cout << "Available flags:" << std::endl;
-				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "\t-n, --name: [Required] Lets you specify the name of the container" << std::endl;
-				return 0;
-			case 'n': 
-				name = optarg;
-				continue;
-			case '?':
-			default:
-				std::string temp = argv[optind - 1];
-				while (!temp.empty() && temp[0] == '-') {
-					temp.erase(0, 1);
-				}
-				std::cerr << "Unknown flag: " << temp << std::endl;
-				return 1;
-		}
+
+	// Define the options
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers")
+		("name,n", po::value<std::string>(&name)->required(), "Lets you specify the name of the container");
+
+	// Parse the command line arguments
+	po::variables_map vm;
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm); // Throws if required options are missing
 	}
-	
-	if(name == ""){
-		std::cerr << "You must provide a name" << std::endl;
+	catch (const po::error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
 		return 1;
 	}
-	
+
+	if (vm.count("help")) {
+		std::cout << "Resets the specified container back to its default state" << std::endl;
+		std::cout << "Available flags:" << std::endl;
+		std::cout << desc << std::endl;
+		return 0;
+	}
 	
 	Labs_Core::Container result = docker.Get_Container(name);
 	docker.Reset(result);
@@ -314,40 +264,32 @@ int Labs_CLI::Docker::Reset(Labs_CLI::Command_Interpreter command, int argc, cha
 
 int Labs_CLI::Docker::Restart(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){	
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'},
-		{"name", required_argument, nullptr, 'n'}, 
-		{nullptr, 0, nullptr, 0}
-	};
-	
 	std::string name = "";
-	
-	int opt;
-	while((opt=getopt_long(argc, argv, "hn:", long_flags, nullptr)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "Restarts the specified container" << std::endl;
-				std::cout << "Available flags:" << std::endl;
-				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "\t-n, --name: [Required] Lets you specify the name of the container" << std::endl;
-				return 0;
-			case 'n': 
-				name = optarg;
-				continue;
-			case '?':
-			default:
-				std::string temp = argv[optind - 1];
-				while (!temp.empty() && temp[0] == '-') {
-					temp.erase(0, 1);
-				}
-				std::cerr << "Unknown flag: " << temp << std::endl;
-				return 1;
-		}
+
+
+	// Define the options
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers")
+		("name,n", po::value<std::string>(&name)->required(), "Lets you specify the name of the container");
+
+	// Parse the command line arguments
+	po::variables_map vm;
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm); // Throws if required options are missing
 	}
-	
-	if(name == ""){
-		std::cerr << "You must provide a name" << std::endl;
+	catch (const po::error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
 		return 1;
+	}
+
+	if (vm.count("help")) {
+		std::cout << "Restarts the specified container" << std::endl;
+		std::cout << "Available flags:" << std::endl;
+		std::cout << desc << std::endl;
+		return 0;
 	}
 	
 	
@@ -357,8 +299,6 @@ int Labs_CLI::Docker::Restart(Labs_CLI::Command_Interpreter command, int argc, c
 }
 
 int Labs_CLI::Docker::Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
-	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
-
 
 	static std::map<std::string_view, std::function<int(Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
 		{"help", Labs_CLI::Docker::Help},
@@ -369,30 +309,31 @@ int Labs_CLI::Docker::Command_Handler(Labs_CLI::Command_Interpreter command, int
 		{"reset", Labs_CLI::Docker::Reset}
 	};
 
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'}, // --help maps to 'h'
-		{nullptr, 0, nullptr, 0}
-	};
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers");
 
 	auto it = possible_commands.find(command.Get_Command());
 	
 	if (it != possible_commands.end()){
 		return it->second(command, argc, argv);
 	} else if (command.Get_Command() == ""){
-		int opt;
-		while((opt=getopt_long(argc, argv, "h", long_flags, nullptr)) != -1) {
-			switch (opt) {
-				case 'h':
-					return possible_commands["help"](command, argc, argv);
-				case '?':
-				default:
-					std::string temp = argv[optind - 1];
-					while (!temp.empty() && temp[0] == '-') {
-						temp.erase(0, 1);
-					}
-					std::cout << "Unknown flag: " << temp << std::endl;
-					return 1;
-			}
+		po::variables_map vm;
+		try {
+			po::store(po::parse_command_line(argc, argv, desc), vm);
+			po::notify(vm); // Throws if required options are missing
+		}
+		catch (const po::error& e) {
+			std::cerr << "Error: " << e.what() << std::endl;
+			std::cerr << desc << std::endl;
+			return 1;
+		}
+
+		if (vm.count("help")) {
+			std::cout << "Restarts the specified container" << std::endl;
+			std::cout << "Available flags:" << std::endl;
+			std::cout << desc << std::endl;
+			return 0;
 		}
 	} else {
 		std::cerr << "Unknown command: " << command.Get_Command() << std::endl;
