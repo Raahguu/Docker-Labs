@@ -60,7 +60,7 @@ int Labs_Core::Container::Remove() {
 	return docker.Remove(*this);
 }
 
-Labs_Core::Container Labs_Core::Container::Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<std::string> networks)
+Labs_Core::Container Labs_Core::Container::Bogus(std::string id, std::string name, std::string image, std::string ip, std::vector<Labs_Core::Network> networks)
 {
 	Container bogus_container = Container(id);
 	bogus_container.name_cache = name;

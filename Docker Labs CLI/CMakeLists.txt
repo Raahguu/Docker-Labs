@@ -26,7 +26,7 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET labs-cli PROPERTY CXX_STANDARD 20)
 endif()
 
-find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(Boost REQUIRED program_options)
 target_link_libraries(labs-cli PRIVATE Boost::program_options)
 
 target_include_directories(labs-cli PRIVATE ${DockerLabsCoreHeaders})

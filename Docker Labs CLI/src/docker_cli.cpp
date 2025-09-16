@@ -328,48 +328,34 @@ int Labs_CLI::Docker::Restart(Labs_CLI::Command_Interpreter command, int argc, c
 
 int Labs_CLI::Docker::Get_Container_Info(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'},
-		{"name", required_argument, nullptr, 'n'}, 
-		{"ip", required_argument, nullptr, 'i'},
-		{"id", required_argument, nullptr, 'd'},
-		{nullptr, 0, nullptr, 0}
-	};
-	
 	std::string name = "";
 	std::string ip = "";
 	std::string id = "";
-	
-	int opt;
-	while((opt=getopt_long(argc, argv, "hn:i:d:", long_flags, nullptr)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "Gets the id, name, ip, image, status, and networks of a container" << std::endl;
-				std::cout << "Available flags:" << std::endl;
-				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "You must use one of the following flags" << std::endl;
-				std::cout << "\t-n, --name: Lets you specify the exact name of the container" << std::endl;
-				std::cout << "\t-d, --id: Lets you specify the exact id of the container" << std::endl;
-				std::cout << "\t-i, --ip: Lets you specify the exact ip of the container" << std::endl;
-				return 0;
-			case 'n': 
-				name = optarg;
-				continue;
-			case 'i':
-				ip = optarg;
-				continue;
-			case 'd':
-				id = optarg;
-				continue;
-			case '?':
-			default:
-				std::string temp = argv[optind - 1];
-				while (!temp.empty() && temp[0] == '-') {
-					temp.erase(0, 1);
-				}
-				std::cerr << "Unknown flag: " << temp << std::endl;
-				return 1;
-		}
+
+	// Define the options
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers")
+		("name,n", po::value<std::string>(&name), "Lets you specify the name of the container")
+		("ip,i", po::value<std::string>(&ip), "Lets you specify the exact id of the container")
+		("id,d", po::value<std::string>(&id), "Lets you specify the exact ip of the container");
+
+	po::variables_map vm;
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm); // Throws if required options are missing
+	}
+	catch (const po::error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
+		return 1;
+	}
+
+	if (vm.count("help")) {
+		std::cout << "Restarts the specified container" << std::endl;
+		std::cout << "Available flags:" << std::endl;
+		std::cout << desc << std::endl;
+		return 0;
 	}
 	
 	if(name == "" && ip == "" && id == ""){
@@ -420,60 +406,38 @@ int Labs_CLI::Docker::Get_Container_Info(Labs_CLI::Command_Interpreter command, 
 
 int Labs_CLI::Docker::Get_Network_Info(Labs_CLI::Command_Interpreter command, int argc, char* argv[]){
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	static struct option long_flags[] = {
-		{"help", no_argument, nullptr, 'h'},
-		{"name", required_argument, nullptr, 'n'}, 
-		{"iprange", required_argument, nullptr, 'i'},
-		{"id", required_argument, nullptr, 'd'},
-		{"gateway", required_argument, nullptr, 'g'},
-		{"subnet", required_argument, nullptr, 's'},
-		{nullptr, 0, nullptr, 0}
-	};
-	
 	std::string name = "";
 	std::string iprange = "";
 	std::string id = "";
 	std::string gateway = "";
 	std::string subnet = "";
-	
-	int opt;
-	while((opt=getopt_long(argc, argv, "hn:i:d:g:s:", long_flags, nullptr)) != -1) {
-		switch (opt) {
-			case 'h':
-				std::cout << "Gets the Id, Name, IPRange, Gateway, Subnet, and containers of a container" << std::endl;
-				std::cout << "Available flags:" << std::endl;
-				std::cout << "\t-h, --help: Provides help on what flags this command offers" << std::endl;
-				std::cout << "You must use one of the following flags" << std::endl;
-				std::cout << "\t-n, --name: Lets you specify the exact name of the network" << std::endl;
-				std::cout << "\t-d, --id: Lets you specify the exact id of the network" << std::endl;
-				std::cout << "\t-i, --iprange: Lets you specify the exact ip of the network" << std::endl;
-				std::cout << "\t-g, --gateway: Lets you specify the exact gateway of the network" << std::endl;
-				std::cout << "\t-s, --subnet: Lets you specify the exact subnet of the network" << std::endl;
-				return 0;
-			case 'n': 
-				name = optarg;
-				continue;
-			case 'i':
-				iprange = optarg;
-				continue;
-			case 'd':
-				id = optarg;
-				continue;
-			case 'g':
-				gateway = optarg;
-				continue;
-			case 's':
-				subnet = optarg;
-				continue;
-			case '?':
-			default:
-				std::string temp = argv[optind - 1];
-				while (!temp.empty() && temp[0] == '-') {
-					temp.erase(0, 1);
-				}
-				std::cerr << "Unknown flag: " << temp << std::endl;
-				return 1;
-		}
+
+	// Define the options
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "Provides help on what flags this command offers")
+		("name,n", po::value<std::string>(&name), "Lets you specify the name of the container")
+		("id,d", po::value<std::string>(&id), "Lets you specify the exact ip of the container")
+		("iprange,i", po::value<std::string>(&iprange), "Lets you specify the exact ip of the network")
+		("gateway,g", po::value<std::string>(&gateway), "Lets you specify the exact gateway of the network")
+		("subnet,s", po::value<std::string>(&subnet), "Lets you specify the exact subnet of the network");
+
+	po::variables_map vm;
+	try {
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm); // Throws if required options are missing
+	}
+	catch (const po::error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
+		return 1;
+	}
+
+	if (vm.count("help")) {
+		std::cout << "Restarts the specified container" << std::endl;
+		std::cout << "Available flags:" << std::endl;
+		std::cout << desc << std::endl;
+		return 0;
 	}
 	
 	if(name == "" && iprange == "" && id == "" && gateway == "" && subnet == ""){
