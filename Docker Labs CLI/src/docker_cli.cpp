@@ -517,7 +517,6 @@ int Labs_CLI::Docker::Command_Handler(Labs_CLI::Command_Interpreter command, int
 		}
 
 		if (vm.count("help")) {
-			std::cout << "Restarts the specified container" << std::endl;
 			std::cout << "Available flags:" << std::endl;
 			std::cout << desc << std::endl;
 			Labs_CLI::Docker::Help(command, argc, argv);
