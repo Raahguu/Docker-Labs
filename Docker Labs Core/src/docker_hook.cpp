@@ -269,7 +269,7 @@ Labs_Core::Container Labs_Core::Docker::Reset(Labs_Core::Container container)
 		}
 	};
 	
-	json createPayload;
+	json createPayload = json::object();
 
 	// Copy Config fields
 	if (response["body"].contains("Config")) {
@@ -292,7 +292,7 @@ Labs_Core::Container Labs_Core::Docker::Reset(Labs_Core::Container container)
 			for (auto it = networks.begin(); it != networks.end(); ++it){
 				const std::string& networkName = it.key();
 				const json& netInfo = it.value();
-				json endpointConfig;
+				json endpointConfig = json::object();
 				json ipamConfig;
 				
 				if (!ipamConfig.empty()) {
@@ -315,6 +315,7 @@ Labs_Core::Container Labs_Core::Docker::Reset(Labs_Core::Container container)
 		}
 	}
 
+	bool running = Get_Status(container);
 
 	Remove(container, false);
 
@@ -327,6 +328,11 @@ Labs_Core::Container Labs_Core::Docker::Reset(Labs_Core::Container container)
 	}
 
 	Labs_Core::Container new_container = Labs_Core::Container(response["body"]["Id"]);
+
+	if (running) {
+		Start(new_container);
+	}
+
 	new_container.Cache_Update();
 
 	std::cout << "Container Successfully Reset" << std::endl;
@@ -387,8 +393,14 @@ json Labs_Core::Docker::CallDockerAPI(const std::string& path, const std::string
 
 	long httpCode;
 	std::string response;
+	
+	#ifdef _WIN32
+		std::string socket = "npipe:////./pipe/docker_engine";
+	#else
+		std::string socket = "/var/run/docker.sock";
+	#endif
 
-	std::tie(httpCode, response) = curl.Socket_Request(url, data, headers, method, (std::string)"/var/run/docker.sock");
+	std::tie(httpCode, response) = curl.Socket_Request(url, data, headers, method, socket);
 
 	json result;
 

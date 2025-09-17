@@ -145,9 +145,6 @@ int Labs_CLI::Docker::Test_Handler(Labs_CLI::Command_Interpreter command, int ar
 }
 
 int Labs_CLI::Docker::Get_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {	
-	opterr = 0; // remove getopt's custom error message when an incorrect flag is supplied
-
-
 	static std::map<std::string_view, std::function<int(Labs_CLI::Command_Interpreter, int, char**)>> possible_commands = {
 		{"container", Labs_CLI::Docker::Get_Container_Info},
 		{"network", Labs_CLI::Docker::Get_Network_Info}
@@ -523,6 +520,7 @@ int Labs_CLI::Docker::Command_Handler(Labs_CLI::Command_Interpreter command, int
 			std::cout << "Restarts the specified container" << std::endl;
 			std::cout << "Available flags:" << std::endl;
 			std::cout << desc << std::endl;
+			Labs_CLI::Docker::Help(command, argc, argv);
 			return 0;
 		}
 	} else {
