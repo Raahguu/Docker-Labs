@@ -5,6 +5,7 @@
 
 namespace Docker_Labs::Labs_CLI::Cloudflare {
 	Labs_Core::Cloudflare::API_Auth Get_Auth();
+	Labs_Core::Cloudflare::API_Auth Get_Auth_Legacy();
 	int Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
 	int Fetch_Seats(Labs_Core::Cloudflare::API_Auth cf_auth);
 	int Fetch_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth);

@@ -15,7 +15,14 @@
 using namespace Docker_Labs;
 namespace po = boost::program_options;
 
-Labs_Core::Cloudflare::API_Auth Labs_CLI::Cloudflare::Get_Auth()
+Labs_Core::Cloudflare::API_Auth Labs_CLI::Cloudflare::Get_Auth() {
+    std::string conn_str;
+    std::cin >> conn_str;
+    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_Core::Cloudflare::API_Auth::From_Connection_String(conn_str);
+    return cf_auth;
+}
+
+Labs_Core::Cloudflare::API_Auth Labs_CLI::Cloudflare::Get_Auth_Legacy()
 {
     if (!isPiped()) {
         std::cout << "Error. Cloudflare keys must be piped." << std::endl;
@@ -48,13 +55,12 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
     std::string command_str = command.Get_Command();
 
     if (command_str == "create_conn_str") {
-        Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
+        Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth_Legacy();
         std::cout << cf_auth.Generate_Connection_String() << std::endl;
         exit(0);
     }
-    std::string conn_str;
-    std::cin >> conn_str;
-    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_Core::Cloudflare::API_Auth::From_Connection_String(conn_str);
+
+    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
 
     // Sub-command mappings for fetch operations
     static std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth)>> fetch_commands = {
