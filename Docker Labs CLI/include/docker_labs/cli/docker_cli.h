@@ -1,5 +1,5 @@
 #include "main.h"
-#include "labs_container.h"
+#include "docker_labs/core/labs_container.h"
 
 namespace Docker_Labs::Labs_CLI::Docker{
 		//Handles figuring out which function each command should go to

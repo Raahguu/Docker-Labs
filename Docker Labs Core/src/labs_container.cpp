@@ -1,6 +1,6 @@
-#include "labs_container.h"
-#include "docker_hook.h"
 #include <iostream>
+#include "docker_labs/core/labs_container.h"
+#include "docker_labs/core/docker_hook.h"
 
 using namespace Docker_Labs;
 //Constructors

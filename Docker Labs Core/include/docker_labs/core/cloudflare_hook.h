@@ -1,14 +1,12 @@
 #pragma once
-#include <curl/curl.h>
+#include "docker_labs/core/labs_user.h"
+#include "docker_labs/core/labs_container.h"
+#include "json/json.hpp"
 #include "curl_wrapper.h"
-#include "labs_user.h"
-#include "labs_container.h"
-#include "json.hpp"
+
 
 using json = nlohmann::json;
-
 namespace Docker_Labs::Labs_Core {
-
 	class Cloudflare {
 	public:
 		class API_Auth {
@@ -16,8 +14,9 @@ namespace Docker_Labs::Labs_Core {
 		public:
 			API_Auth();
 			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
+			std::string Generate_Connection_String();
+			static API_Auth From_Connection_String(const std::string& connection_string);
 		private:
-			static std::string Cin();
 			const std::string ACC;
 			const std::string ZONE;
 			const std::string TUNN;
@@ -26,8 +25,6 @@ namespace Docker_Labs::Labs_Core {
 		};
 
 		static int Test_API(const Cloudflare::API_Auth& auth);
-
-		static std::vector<User> Fetch_Seats(const Cloudflare::API_Auth& auth);
 
 		static json Fetch_Ingress(const Cloudflare::API_Auth& auth);
 		static json Fetch_DNS_Records(const Cloudflare::API_Auth& auth);
@@ -38,7 +35,9 @@ namespace Docker_Labs::Labs_Core {
 		std::vector<std::tuple<int, std::string>> Get_Return_Info(json responce);
 
 		// Seats
-		std::vector<User> Fetch_Seats();
+		std::vector<User_Seat> Fetch_Seats();
+		std::vector<User> Fetch_Seated();
+		User_Seat Fetch_Seat(User user);
 		//int Revoke_Seat(User user);
 		// Ingress
 		json Fetch_Ingress();
@@ -61,8 +60,11 @@ namespace Docker_Labs::Labs_Core {
 		json Fetch_Application_Policy(Container container, std::string application_id);
 		int Initialize_Policy(Container container, User user);
 		int Initialize_Policy(Container container, User user, std::string application_id);
+
 		int Grant_Container(Container container, User user);
 		int Revoke_Container(Container container, User user);
+		int Deactivate_Seat(User user);
+		int Deactivate_Seat(User_Seat user);
 		//int* Get_Members(Container container);
 		//int* Get_Authorised_Containers(User user);
 		// Global
@@ -73,7 +75,7 @@ namespace Docker_Labs::Labs_Core {
 		//int Delete(User user);
 	private:
 		const API_Auth& auth;
-		Curl_Wrapper curl;
+		Labs_Core::Curl_Wrapper curl;
 
 		bool must_cout;
 
@@ -96,6 +98,9 @@ namespace Docker_Labs::Labs_Core {
 		std::string Generate_Initial_Policy_Config(Container container, User user);
 		std::string Generate_Grant_Policy_Config(Container container, User user, json application_policy);
 		std::string Generate_Revoke_Policy_Config(Container container, User user, json application_policy);
+		std::string Generate_Seat_Deactivation(User_Seat user);
+		std::string Generate_Bulk_Seat_Deactivation(std::vector<User_Seat> users);
+
 
 	};
 }

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <tuple>
-#include "curl_wrapper.h"
+#include "docker_labs/core/curl_wrapper.h"
 
 using namespace Docker_Labs;
 
@@ -81,3 +81,4 @@ std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Get(const std::string& ur
 std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Delete(const std::string& url, std::vector<std::string>& headers) { std::string request_type = "DELETE"; return Web_Request(url, headers, request_type); }
 std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Post(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "POST"; return Web_Request(url, data, headers, request_type); }
 std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Put(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "PUT"; return Web_Request(url, data, headers, request_type); }
+std::tuple<long, std::string> Labs_Core::Curl_Wrapper::Patch(const std::string& url, const std::string& data, const std::vector<std::string>& headers) { std::string request_type = "PATCH"; return Web_Request(url, data, headers, request_type); }

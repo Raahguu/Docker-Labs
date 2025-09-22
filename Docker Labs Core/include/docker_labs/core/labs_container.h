@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "labs_network.h"
+#include "docker_labs/core/labs_network.h"
 
 namespace Docker_Labs::Labs_Core {
 

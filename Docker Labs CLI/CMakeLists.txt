@@ -7,27 +7,28 @@ project(DockerLabsCli)
 
 if(UNIX)
 	set(DockerLabsCore "${CMAKE_BINARY_DIR}/Docker Labs Core/libDockerLabsCore.so")
-	set(DockerLabsCoreHeaders "${CMAKE_BINARY_DIR}/Docker Labs Core/include")
 elseif(WIN32)
 	set(DockerLabsCore "${CMAKE_BINARY_DIR}/Docker Labs Core/DockerLabsCore.dll")
-	set(DockerLabsCoreHeaders "${CMAKE_BINARY_DIR}/Docker Labs Core/include")
 else()
 	message(FATAL_ERROR "Unsupported platform.")
 endif()
 
+set(DockerLabsCoreIncludes "${CMAKE_SOURCE_DIR}/Docker Labs Core/include")
+
 
 file(GLOB SOURCES "src/*.cpp")
+file(GLOB INCLUDES "include/*")
 
-message(STATUS ${DockerLabsCoreHeaders})
-
-add_executable (labs-cli ${SOURCES})
+add_executable (labs-cli ${SOURCES} ${INCLUDES})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET labs-cli PROPERTY CXX_STANDARD 20)
 endif()
 
+target_include_directories(labs-cli PRIVATE "include")
+target_include_directories(labs-cli PRIVATE ${DockerLabsCoreIncludes})
+
 find_package(Boost REQUIRED program_options)
 target_link_libraries(labs-cli PRIVATE Boost::program_options)
 
-target_include_directories(labs-cli PRIVATE ${DockerLabsCoreHeaders})
 target_link_libraries(labs-cli PRIVATE ${DockerLabsCore})

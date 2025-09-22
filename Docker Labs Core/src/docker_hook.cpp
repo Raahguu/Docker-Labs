@@ -1,6 +1,6 @@
 #include <iostream>
-#include "docker_hook.h"
-#include "curl_wrapper.h"
+#include "docker_labs/core/docker_hook.h"
+#include "docker_labs/core/curl_wrapper.h"
 
 
 using namespace Docker_Labs;
@@ -94,7 +94,7 @@ std::string Labs_Core::Docker::Get_IP(Labs_Core::Container container)
 			return Data["IPAddress"];
 		}
 		return "";
-	} catch (const nlohmann::json::type_error& e) {
+	} catch (const nlohmann::json::type_error&) {
 		return "";
 	}
 }
@@ -606,7 +606,7 @@ std::string Labs_Core::Docker::Get_IP_Range(Labs_Core::Network network) {
 
 	try {
 		return response["body"]["IPAM"]["Config"][0]["IPRange"];
-	} catch (const nlohmann::json::type_error& e) {
+	} catch (const nlohmann::json::type_error&) {
 		return response["body"]["IPAM"]["Config"][0]["Subnet"];
 	}
 };

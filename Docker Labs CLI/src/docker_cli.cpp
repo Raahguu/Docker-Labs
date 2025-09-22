@@ -1,5 +1,5 @@
-#include "docker_cli.h"
-#include "docker_hook.h"
+#include "docker_labs/cli/docker_cli.h"
+#include "docker_labs/core/docker_hook.h"
 #include <boost/program_options.hpp>
 
 using namespace Docker_Labs;

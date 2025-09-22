@@ -1,7 +1,7 @@
 #include <random>
 #include <boost/program_options.hpp>
-#include "global_cli.h"
-#include "cloudflare_cli.h"
+#include "docker_labs/cli/global_cli.h"
+#include "docker_labs/cli/cloudflare_cli.h"
 
 using namespace Docker_Labs;
 namespace po = boost::program_options;

@@ -1,7 +1,7 @@
 #pragma once
 #include "main.h"
-#include "cloudflare_hook.h"
-#include "docker_hook.h"
+#include "docker_labs/core/cloudflare_hook.h"
+#include "docker_labs/core/docker_hook.h"
 
 namespace Docker_Labs::Labs_CLI {
 	int Global_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]);

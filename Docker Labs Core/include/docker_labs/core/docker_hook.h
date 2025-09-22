@@ -1,8 +1,8 @@
 #pragma once
-#include "labs_container.h"
+#include "docker_labs/core/labs_container.h"
+#include "docker_labs/core/labs_network.h"
+#include "json/json.hpp"
 #include "curl_wrapper.h"
-#include "labs_network.h"
-#include "json.hpp"
 
 using json = nlohmann::json;
 

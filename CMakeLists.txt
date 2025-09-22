@@ -18,4 +18,3 @@ endif()
 
 add_subdirectory ("Docker Labs Core")
 add_subdirectory ("Docker Labs CLI")
-add_subdirectory ("Docker Labs Web")

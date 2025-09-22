@@ -1,7 +1,7 @@
 #include <thread>
 #include <chrono>
-#include "cloudflare_cli_tests.h"
-#include "cloudflare_cli.h"
+#include "docker_labs/cli/cloudflare_cli_tests.h"
+#include "docker_labs/cli/cloudflare_cli.h"
 
 using namespace Docker_Labs;
 

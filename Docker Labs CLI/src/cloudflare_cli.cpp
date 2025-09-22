@@ -1,7 +1,8 @@
-#include "cloudflare_cli.h"
-#include "cloudflare_cli_tests.h"
-#include "cloudflare_hook.h"
-#include "docker_hook.h"
+#include <vector>
+#include "docker_labs/cli/cloudflare_cli.h"
+#include "docker_labs/cli/cloudflare_cli_tests.h"
+#include "docker_labs/core/cloudflare_hook.h"
+#include "docker_labs/core/docker_hook.h"
 #include "boost/program_options.hpp"
 #ifdef _WIN32
 #include <io.h>
@@ -43,14 +44,22 @@ Labs_Core::Cloudflare::API_Auth Labs_CLI::Cloudflare::Get_Auth()
     return cf_auth;
 }
 
-int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {  
-    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
+int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]) {
+    std::string command_str = command.Get_Command();
 
+    if (command_str == "create_conn_str") {
+        Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
+        std::cout << cf_auth.Generate_Connection_String() << std::endl;
+        exit(0);
+    }
+    std::string conn_str;
+    std::cin >> conn_str;
+    Labs_Core::Cloudflare::API_Auth cf_auth = Labs_Core::Cloudflare::API_Auth::From_Connection_String(conn_str);
 
     // Sub-command mappings for fetch operations
     static std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth)>> fetch_commands = {
         //                                     ^ A ^---------------------------- B
-        {"seats",       Get_Seats},
+        {"seats",       Fetch_Seats},
         {"ingress",     Fetch_Ingress},
         {"dns",         Fetch_DNS_Records}
         //^ C           ^-------------- D
@@ -89,7 +98,6 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
     };
 
     // Cloudflare partition commands
-    std::string command_str = command.Get_Command();
     if (command_str == "fetch") {
         // Map to fetch sub-commands
         std::map<std::string, std::function<int(Labs_Core::Cloudflare::API_Auth)>>::iterator
@@ -140,19 +148,28 @@ int Labs_CLI::Cloudflare::Command_Handler(Labs_CLI::Command_Interpreter command,
         // Map to revoke
         return Revoke_Container(cf_auth, argc, argv);
     }
-    else {
-        return Help_Message(argc, argv);
+    else if (command_str == "deactivate") {
+        // Map to deactivate user
+        return Deactivate_Seats(cf_auth, argc, argv);
     }
 
     return Help_Message(argc, argv);
 }
 
 
-int Labs_CLI::Cloudflare::Get_Seats(Labs_Core::Cloudflare::API_Auth cf_auth)
+int Labs_CLI::Cloudflare::Fetch_Seats(Labs_Core::Cloudflare::API_Auth cf_auth)
 {
-    std::vector<Labs_Core::User> users = Labs_Core::Cloudflare::Fetch_Seats(cf_auth);
-    for (Labs_Core::User user : users) {
-        std::cout << user.Get_Email() << std::endl;
+    std::vector<Labs_Core::User_Seat> users = Labs_Core::Cloudflare(cf_auth).Fetch_Seats();
+    for (Labs_Core::User_Seat user : users) {
+        std::cout << "Seat UID: " << user.Get_SeatUID() << std::endl;
+        std::cout << "Name: " << user.Get_Name() << std::endl;
+        std::cout << "Email: " << user.Get_Email() << std::endl;
+        std::cout << "Created: " << user.Get_CreatedAt() << std::endl;
+        std::cout << "Last Accessed: " << user.Get_LastSuccessfulLogin() << std::endl;
+        std::cout << "Seats: " << (user.Get_AccessSeat() ? "Access" : "")
+            << (user.Get_AccessSeat() && user.Get_GatewaySeat() ? ", " : "")
+            << (user.Get_GatewaySeat() ? "Gateway" : "")
+            << (user.Get_AccessSeat() || user.Get_GatewaySeat() ? "" : "None") << std::endl << std::endl;
     }
     return 0;
 }
@@ -217,10 +234,85 @@ Labs_Core::Container Labs_CLI::Cloudflare::Spec_Container(int argc, char* argv[]
         std::cout << desc << std::endl;
         exit(0);
     }
-    
+
     Labs_Core::Container cont = docker.Get_Container(container_name);
     cont.Cache_Update();
     return cont;
+}
+std::vector<Labs_Core::User> Labs_CLI::Cloudflare::Spec_User(int argc, char* argv[])
+{
+    std::vector<std::string> emails;
+    std::vector<Labs_Core::User> users;
+    // Define the options
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "Shows this popup")
+        ("user,u", po::value<std::vector<std::string>>(&emails)->multitoken(), "Specifies the user by email");
+
+    // Parse the command line arguments
+    po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm); // Throws if required options are missing
+    }
+    catch (const po::error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << desc << std::endl;
+        exit(1);
+    }
+
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        exit(0);
+    }
+    else if (emails.size() > 0) {
+        for (std::string email : emails) {
+            users.push_back(Labs_Core::User(email));
+        }
+        return users;
+    }
+    std::cout << desc << std::endl;
+    exit(1);
+}
+std::vector<Labs_Core::User_Seat> Labs_CLI::Cloudflare::Spec_Seat(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]) {
+    Labs_Core::Cloudflare cloudflare = Labs_Core::Cloudflare(cf_auth);
+    std::vector<std::string> emails;
+    std::vector<Labs_Core::User_Seat> seated_users;
+    // Define the options
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "Shows this popup")
+        ("user,u", po::value<std::vector<std::string>>(&emails)->multitoken(), "Specifies the user by email")
+        ("all,a", "Executes on all seated users.");
+
+        // Parse the command line arguments
+        po::variables_map vm;
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm); // Throws if required options are missing
+    }
+    catch (const po::error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << desc << std::endl;
+        exit(1);
+    }
+
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        exit(0);
+    }
+    else if (vm.count("all")) {
+        return Labs_Core::Cloudflare(cf_auth).Fetch_Seats();
+    }
+    else if (emails.size() > 0) {
+        for (std::string email : emails) {
+            seated_users.push_back(cloudflare.Fetch_Seat(Labs_Core::User(email)));
+        }
+        return seated_users;
+    }
+
+    std::cout << desc << std::endl;
+    exit(0);
 }
 std::tuple<Labs_Core::Container, Labs_Core::User> Labs_CLI::Cloudflare::Spec_Container_User(int argc, char* argv[])
 {
@@ -306,7 +398,17 @@ int Labs_CLI::Cloudflare::Revoke_Container(Labs_Core::Cloudflare::API_Auth cf_au
     std::tuple<Labs_Core::Container, Labs_Core::User> container_user = Spec_Container_User(argc, argv);
     return Labs_Core::Cloudflare(cf_auth).Revoke_Container(std::get<Labs_Core::Container>(container_user), std::get<Labs_Core::User>(container_user));
 }
+int Labs_CLI::Cloudflare::Deactivate_Seats(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]) {
+    std::vector<Labs_Core::User_Seat> seated_users = Spec_Seat(cf_auth, argc, argv);
+    
+    for (Labs_Core::User_Seat seat: seated_users) {
+        Labs_Core::Cloudflare(cf_auth).Deactivate_Seat(seat);
+    }
+
+    return 0;
+}
 
 int Labs_CLI::Cloudflare::Help_Message(int argc, char* argv[]) {
+    std::cout << "INSERT HELP MESSAGE HERE" << std::endl;
     return 0;
 }

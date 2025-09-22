@@ -1,7 +1,7 @@
-#include "docker_hook.h"
-#include "labs_network.h"
-#include "labs_container.h"
 #include <iostream>
+#include "docker_labs/core/docker_hook.h"
+#include "docker_labs/core/labs_network.h"
+#include "docker_labs/core/labs_container.h"
 
 using namespace Docker_Labs;
 

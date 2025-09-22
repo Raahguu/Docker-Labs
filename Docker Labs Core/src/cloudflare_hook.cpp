@@ -1,7 +1,14 @@
 #include <tuple>
 #include <iostream>
-#include "cloudflare_hook.h"
-#include "docker_hook.h"
+#include <filesystem>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
+#include <boost/algorithm/string.hpp>
+#include "docker_labs/core/cloudflare_hook.h"
+#include "docker_labs/core/docker_hook.h"
+#include "docker_labs/core/curl_wrapper.h"
+#include "docker_labs/core/labs_user.h"
 
 using namespace Docker_Labs;
 // Cloudflare::API_Auth
@@ -10,17 +17,64 @@ Labs_Core::Cloudflare::API_Auth::API_Auth(std::string account_id, std::string zo
 	: ACC(account_id), ZONE(zone_id), TUNN(tunnel_id), TKN(API_token), DOMN(Domain)
 {
 }
-Labs_Core::Cloudflare::API_Auth::API_Auth()
-	: ACC(Cin()), ZONE(Cin()), TUNN(Cin()), TKN(Cin()), DOMN(Cin())
-{
-}
-std::string Labs_Core::Cloudflare::API_Auth::Cin()
-{
-	std::string input;
-	std::cin >> input;
-	return input;
+
+std::string getFirstUUID() {
+	for (const auto& entry : std::filesystem::directory_iterator("/dev/disk/by-uuid")) {
+		return entry.path().filename().string();
+	}
+	return "";
 }
 
+std::string xorCipher(const std::string& input, const std::string& key) {
+	std::string output = input;
+	for (size_t i = 0; i < input.size(); ++i) {
+		output[i] = input[i] ^ key[i % key.size()];
+	}
+	return output;
+}
+
+std::string Labs_Core::Cloudflare::API_Auth::Generate_Connection_String() {
+	using It = boost::archive::iterators::base64_from_binary<boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8>>;
+
+	std::string UUID = getFirstUUID();
+	if (UUID.empty()) {
+		throw "NO UUID";
+	}
+	std::string plaintext = ACC + ZONE + TUNN + TKN + DOMN;
+	std::string ciphertext = xorCipher(plaintext, UUID);
+	auto tmp = std::string(It(std::begin(ciphertext)), It(std::end(ciphertext)));
+	return tmp.append((3 - ciphertext.size() % 3) % 3, '=');
+}
+
+Labs_Core::Cloudflare::API_Auth Labs_Core::Cloudflare::API_Auth::From_Connection_String(const std::string& connection_string) {
+	using It = boost::archive::iterators::transform_width<boost::archive::iterators::binary_from_base64<std::string::const_iterator>, 8, 6>;
+
+	std::string UUID = getFirstUUID();
+	if (UUID.empty()) {
+		throw std::runtime_error("NO UUID");
+	}
+
+	// Decode the Base64 connection string
+	std::string ciphertext = boost::algorithm::trim_right_copy_if(std::string(It(std::begin(connection_string)), It(std::end(connection_string))), [](char c) {
+		return c == '\0';
+		});
+
+	// De-obfuscate the string
+	std::string plaintext = xorCipher(ciphertext, UUID);
+
+	// Extract components based on specified lengths
+	if (plaintext.size() < 140) { // 32 + 32 + 36 + 40 = 140
+		throw std::runtime_error("Invalid connection string format");
+	}
+
+	std::string ACC = plaintext.substr(0, 32);
+	std::string ZONE = plaintext.substr(32, 32);
+	std::string TUNN = plaintext.substr(64, 36);
+	std::string TKN = plaintext.substr(100, 40);
+	std::string DOMN = plaintext.substr(140);
+
+	return API_Auth(ACC, ZONE, TUNN, TKN, DOMN);
+}
 // Cloudflare
 Labs_Core::Cloudflare::Cloudflare(const API_Auth& auth)
 	: auth(auth), curl(Curl_Wrapper()), must_cout(true)
@@ -32,23 +86,41 @@ Labs_Core::Cloudflare::Cloudflare(const API_Auth & auth, bool must_cout)
 
 
 // Class mode fetching
-std::vector<Labs_Core::User> Labs_Core::Cloudflare::Fetch_Seats()
+std::vector<Labs_Core::User_Seat> Labs_Core::Cloudflare::Fetch_Seats()
 {
 	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/users";
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
 	std::string responce = std::get<std::string>(curl.Get(url, headers));
-
 	json seats = json::parse(responce)["result"];
-	std::vector<User> users;
+	std::vector<Labs_Core::User_Seat> users;
 	for (const json& user : seats) {
-		if (user["access_seat"]) {
-			users.push_back(User(user.value("email", "")));
-		}
+		users.push_back(User_Seat(user));
 	}
 
 	return users;
+}
+std::vector<Labs_Core::User> Labs_Core::Cloudflare::Fetch_Seated()
+{
+	std::vector<Labs_Core::User> users;
+	for (Labs_Core::User_Seat seated_user: Fetch_Seats()) {
+		users.push_back(seated_user);
+	}
+	return users;
+}
+Labs_Core::User_Seat Labs_Core::Cloudflare::Fetch_Seat(Labs_Core::User user)
+{
+	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/users?email=" + user.Get_Email();
+	std::vector<std::string> headers = {
+		"Authorization: Bearer " + auth.TKN
+	};
+	std::string responce = std::get<std::string>(curl.Get(url, headers));
+	json users = json::parse(responce)["result"];
+	if (users.size() < 1) {
+		throw "User does not have a seat.";
+	}
+	return User_Seat(users[0]);
 }
 json Labs_Core::Cloudflare::Fetch_Ingress() {
 	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/cfd_tunnel/"+auth.TUNN+"/configurations";
@@ -74,7 +146,7 @@ json Labs_Core::Cloudflare::Fetch_DNS_Records() {
 	json records = json::parse(responce);
 	return records;
 }
-json Labs_Core::Cloudflare::Fetch_DNS_Record(Container container)
+json Labs_Core::Cloudflare::Fetch_DNS_Record(Labs_Core::Container container)
 {
 	std::string url = "https://api.cloudflare.com/client/v4/zones/" + auth.ZONE + "/dns_records?type=CNAME&proxied=true&name=" + container.Get_Name_Cache() + "-" + auth.DOMN;
 	std::vector<std::string> headers = {
@@ -85,7 +157,7 @@ json Labs_Core::Cloudflare::Fetch_DNS_Record(Container container)
 	json records = json::parse(responce);
 	return records;
 }
-json Labs_Core::Cloudflare::Fetch_Application(Container container) {
+json Labs_Core::Cloudflare::Fetch_Application(Labs_Core::Container container) {
 	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/apps?exact=true&domain=" + container.Get_Name_Cache() + "-" + auth.DOMN;
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
@@ -95,7 +167,7 @@ json Labs_Core::Cloudflare::Fetch_Application(Container container) {
 	json application = json::parse(responce);
 	return application;
 }
-json Labs_Core::Cloudflare::Fetch_Application_Policy(Container container) {
+json Labs_Core::Cloudflare::Fetch_Application_Policy(Labs_Core::Container container) {
 	json application = Fetch_Application(container);
 	std::string application_id = application["result"][0]["id"];
 
@@ -137,7 +209,7 @@ int Labs_Core::Cloudflare::Test_API()
 	try {
 		responce = std::get<std::string>(curl.Get(url, headers));
 	}
-	catch (const char* msg) {
+	catch (const char*) {
 		return 3;
 	}
 	try {
@@ -151,7 +223,7 @@ int Labs_Core::Cloudflare::Test_API()
 		}
 
 	}
-	catch (const char* msg) {
+	catch (const char*) {
 		return 1;
 	}
 	if (status == "active") {
@@ -170,9 +242,6 @@ json Labs_Core::Cloudflare::Fetch_Ingress(const API_Auth& auth)
 }
 json Labs_Core::Cloudflare::Fetch_DNS_Records(const API_Auth& auth) {
 	return Labs_Core::Cloudflare(auth).Fetch_DNS_Records();
-}
-std::vector<Labs_Core::User> Labs_Core::Cloudflare::Fetch_Seats(const API_Auth& auth) {
-	return Labs_Core::Cloudflare(auth).Fetch_Seats();
 }
 
 int Labs_Core::Cloudflare::Test_API(const API_Auth& auth) {
@@ -307,6 +376,25 @@ std::string Labs_Core::Cloudflare::Generate_Revoke_Policy_Config(Labs_Core::Cont
 	message_body["include"] = granted;
 	return message_body.dump();
 
+}
+std::string Labs_Core::Cloudflare::Generate_Seat_Deactivation(Labs_Core::User_Seat user)
+{
+	json message_body = "[{\"access_seat\":false,\"gateway_seat\":false}]"_json;
+	message_body[0]["seat_uid"] = user.Get_SeatUID();
+	return message_body.dump();
+}
+std::string Labs_Core::Cloudflare::Generate_Bulk_Seat_Deactivation(std::vector<Labs_Core::User_Seat> users)
+{
+	json message_body = "[]";
+	json user_object = "";
+
+	for (Labs_Core::User_Seat user : users) {
+		user_object = "{\"access_seat\":false,\"gateway_seat\":false}"_json;
+		user_object["seat_uid"] = user.Get_SeatUID();
+		message_body.push_back(user_object);
+	}
+
+	return message_body.dump();
 }
 
 
@@ -500,7 +588,18 @@ int Labs_Core::Cloudflare::Revoke_Container(Container container, User user)
 	}
 	return std::get<0>(Get_Return_Info(json::parse(responce))[0]);
 }
+int Labs_Core::Cloudflare::Deactivate_Seat(User_Seat seated_user)
+{
+	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/seats";
+	std::vector<std::string> headers = {
+		"Content-Type: application/json",
+		"Authorization: Bearer " + auth.TKN
+	};
 
+	std::string data = Generate_Seat_Deactivation(seated_user);
+	std::string responce = std::get<std::string>(curl.Patch(url, data, headers));
+	return 0;
+}
 
 int Labs_Core::Cloudflare::Activate_Container(Container container, User user)
 {
