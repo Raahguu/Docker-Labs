@@ -26,7 +26,7 @@ std::vector<Labs_Core::Network> Labs_Core::Container::Get_Networks_Cache() {
 
 int Labs_Core::Container::Cache_Update() {
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	name_cache = docker.Get_Name(*this);
+	name_cache = docker.Get_Container_Name(*this);
 	image_cache = docker.Get_Image(*this);
 	try {
 		ip_cache = docker.Get_IP(*this);

@@ -1,4 +1,11 @@
-﻿// Docker Labs.cpp : Defines the entry point for the application.
+﻿/**
+ * global_cli.cpp
+ * Implementation of global CLI command handlers.
+ *
+ * Implements command dispatching for global commands such as add,
+ * remove, instantiate, and nuke, integrating Docker and Cloudflare functionality.
+ */
+
 #include "docker_labs/cli/main.h"
 #include "docker_labs/cli/global_cli.h"
 #include "docker_labs/cli/cloudflare_cli.h"
@@ -6,63 +13,77 @@
 
 using namespace Docker_Labs;
 
+// ---------------------------------------------
+// Main entry point
+// Parses the top-level partition and dispatches command handling
+// ---------------------------------------------
 int main(int argc, char* argv[])
 {
-	Labs_CLI::Command_Interpreter command = Labs_CLI::Command_Interpreter(argc, argv);
+    // Parse the command line arguments into a Command_Interpreter instance
+    Labs_CLI::Command_Interpreter command(argc, argv);
 
-	//Section for cloudflare commands
-	//./labs-cli cloudflare <command> [<subcommand>]
-
-	if (command.Get_Partition() == "cloudflare") {
-		return Labs_CLI::Cloudflare::Command_Handler(command, argc, argv);
-	}
-	else if (command.Get_Partition() == "docker") {
-		return Labs_CLI::Docker::Command_Handler(command, argc, argv);
-	}
-	else {
-		return Labs_CLI::Global_Handler(command, argc, argv);
-	}
-
+    // Dispatch to appropriate subcommand handler based on partition
+    if (command.Get_Partition() == "cloudflare") {
+        // Cloudflare related commands
+        // Usage: ./labs-cli cloudflare <command> [<subcommand>]
+        return Labs_CLI::Cloudflare::Command_Handler(command, argc, argv);
+    }
+    else if (command.Get_Partition() == "docker") {
+        // Docker related commands
+        return Labs_CLI::Docker::Command_Handler(command, argc, argv);
+    }
+    else {
+        // Fallback to global command handler for other partitions
+        return Labs_CLI::Global_Handler(command, argc, argv);
+    }
 }
 
-Labs_CLI::Command_Interpreter::Command_Interpreter(int argc, char* argv[]) {
+// ---------------------------------------------
+// Command_Interpreter constructor
+// Parses the command line to extract partition, command, and subcommand
+// ---------------------------------------------
+Labs_CLI::Command_Interpreter::Command_Interpreter(int argc, char* argv[])
+{
+    if (argc < 2) {
+        // Not enough arguments provided; print usage message
+        std::cerr << "Usage: " << argv[0] << " <partition> [command] [subcommand]\n";
+    }
+    else {
+        partition = argv[1];  // First argument after program name is partition
 
-	if (argc < 2) {
-		std::cerr << "Usage: " << argv[0] << " <partition> [command] [subcommand]\n";
-	}
-	else {
+        int index = 2;
 
-		partition = argv[1];
+        // Check for first subcommand, if it exists and is not an option (no leading '-')
+        if (argc > index && argv[index][0] != '-') {
+            command = argv[index];
+            ++index;
+        }
 
-		int index = 2;
-
-		// Detect first subcommand if it exists and does not start with '-'
-		if (argc > index && argv[index][0] != '-') {
-			command = argv[index];
-			++index;
-		}
-
-		// Detect second subcommand if it exists and does not start with '-'
-		if (argc > index && argv[index][0] != '-') {
-			subcommand = argv[index];
-			++index;
-		}
-	}
+        // Check for second subcommand, if it exists and is not an option
+        if (argc > index && argv[index][0] != '-') {
+            subcommand = argv[index];
+            ++index;
+        }
+    }
 }
 
-
+// ---------------------------------------------
+// Accessor for partition (top-level command group)
+// ---------------------------------------------
 std::string Labs_CLI::Command_Interpreter::Get_Partition() {
-	return partition;
+    return partition;
 }
 
+// ---------------------------------------------
+// Accessor for first subcommand
+// ---------------------------------------------
 std::string Labs_CLI::Command_Interpreter::Get_Command() {
-	return command;
+    return command;
 }
 
+// ---------------------------------------------
+// Accessor for second subcommand
+// ---------------------------------------------
 std::string Labs_CLI::Command_Interpreter::Get_SubCommand() {
-	return subcommand;
-}
-
-std::vector<std::string> Labs_CLI::Command_Interpreter::Get_Flags() {
-	return flags;
+    return subcommand;
 }

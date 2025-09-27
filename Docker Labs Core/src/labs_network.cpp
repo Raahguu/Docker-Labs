@@ -35,10 +35,10 @@ std::string Labs_Core::Network::Get_IP_Range_Cache() {
 
 int Labs_Core::Network::Cache_Update() {
 	Labs_Core::Docker docker = Labs_Core::Docker();
-	name_cache = docker.Get_Name(*this);
+	name_cache = docker.Get_Network_Name(*this);
 	subnet_cache = docker.Get_Subnet(*this);
 	gateway_cache = docker.Get_Gateway(*this);
-	containers_cache = docker.Get_Networks_Containers(*this);
+	containers_cache = docker.Get_Containers(*this);
 	try {
 		IPRange = docker.Get_IP_Range(*this);
 	} catch (...) {
