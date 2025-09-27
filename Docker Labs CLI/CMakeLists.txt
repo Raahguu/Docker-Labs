@@ -28,7 +28,9 @@ endif()
 target_include_directories(labs-cli PRIVATE "include")
 target_include_directories(labs-cli PRIVATE ${DockerLabsCoreIncludes})
 
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED program_options)
+
 target_link_libraries(labs-cli PRIVATE Boost::program_options)
 
 target_link_libraries(labs-cli PRIVATE ${DockerLabsCore})

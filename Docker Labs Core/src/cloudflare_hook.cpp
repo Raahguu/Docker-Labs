@@ -19,10 +19,17 @@ Labs_Core::Cloudflare::API_Auth::API_Auth(std::string account_id, std::string zo
 }
 
 std::string getFirstUUID() {
+	std::string first;
+	bool found = false;
 	for (const auto& entry : std::filesystem::directory_iterator("/dev/disk/by-uuid")) {
-		return entry.path().filename().string();
+		std::string name = entry.path().filename().string();
+		if (!found || name < first) {
+			first = name;
+			found = true;
+		}
 	}
-	return "";
+	return found ? first : "";
+
 }
 
 std::string xorCipher(const std::string& input, const std::string& key) {
@@ -158,7 +165,8 @@ json Labs_Core::Cloudflare::Fetch_DNS_Record(Labs_Core::Container container)
 	return records;
 }
 json Labs_Core::Cloudflare::Fetch_Application(Labs_Core::Container container) {
-	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/apps?exact=true&domain=" + container.Get_Name_Cache() + "-" + auth.DOMN;
+	std::string path = "container%2f" + container.Get_ID() + "%2fterminal";
+	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/access/apps?exact=true&search="+path;
 	std::vector<std::string> headers = {
 		"Authorization: Bearer " + auth.TKN
 	};
@@ -198,7 +206,7 @@ std::vector<std::tuple<int, std::string>> Labs_Core::Cloudflare::Get_Return_Info
 	}
 }
 
-int Labs_Core::Cloudflare::Test_API()
+std::string Labs_Core::Cloudflare::Test_API()
 {
 	std::string url = "https://api.cloudflare.com/client/v4/accounts/" + auth.ACC + "/tokens/verify";
 	std::vector<std::string> headers = {
@@ -210,7 +218,7 @@ int Labs_Core::Cloudflare::Test_API()
 		responce = std::get<std::string>(curl.Get(url, headers));
 	}
 	catch (const char*) {
-		return 3;
+		return "Failed to fetch";
 	}
 	try {
 		json JSON = json::parse(responce);
@@ -219,19 +227,14 @@ int Labs_Core::Cloudflare::Test_API()
 			status = JSON["result"]["status"];
 		}
 		else {
-			return 2;
+			return auth.ACC + "\n" + auth.ZONE + "\n" + auth.TUNN + "\n" + auth.TKN + "\n" + auth.DOMN;
 		}
 
 	}
 	catch (const char*) {
-		return 1;
+		return "Failed to parse";
 	}
-	if (status == "active") {
-		return 0;
-	}
-	else {
-		return 2;
-	}
+	return status;
 }
 
 
@@ -244,7 +247,7 @@ json Labs_Core::Cloudflare::Fetch_DNS_Records(const API_Auth& auth) {
 	return Labs_Core::Cloudflare(auth).Fetch_DNS_Records();
 }
 
-int Labs_Core::Cloudflare::Test_API(const API_Auth& auth) {
+std::string Labs_Core::Cloudflare::Test_API(const API_Auth& auth) {
 	return Labs_Core::Cloudflare(auth).Test_API();
 }
 
@@ -256,18 +259,19 @@ std::string Labs_Core::Cloudflare::Generate_Add_Ingress_Config(Container contain
 }
 std::string Labs_Core::Cloudflare::Generate_Add_Ingress_Config(Container container, json current_ingress)
 {
-	std::string hostname = container.Get_Name_Cache() + "-" + auth.DOMN;
+	std::string path = "container/" + container.Get_ID() + "/terminal";
 	std::string service = "ssh://" + container.Get_IP_Cache() + ":22";
 	json ingress_conf = current_ingress;
-	json ingress_rule = "{\"hostname\":\"\",\"service\":\"\"}"_json;
+	json ingress_rule = "{}"_json;
 	json message_body = "{\"config\": { } }"_json;
 
 	// Save catch all rule, must be last
 	json catch_all_rule = ingress_conf.back();
 	ingress_conf.erase(ingress_conf.end() - 1);
 
-	ingress_rule["hostname"] = hostname;
+	ingress_rule["hostname"] = auth.DOMN;
 	ingress_rule["service"] = service;
+	ingress_rule["path"] = path;
 
 	ingress_conf.push_back(ingress_rule);
 	ingress_conf.push_back(catch_all_rule);
@@ -283,7 +287,7 @@ std::string Labs_Core::Cloudflare::Generate_Remove_Ingress_Config(Container cont
 }
 std::string Labs_Core::Cloudflare::Generate_Remove_Ingress_Config(Container container, json current_ingress)
 {
-	std::string hostname = container.Get_Name_Cache() + "-" + auth.DOMN;
+	std::string path = "container/" + container.Get_ID() + "/terminal";
 	json ingress_conf = current_ingress;
 	json message_body = "{\"config\": { } }"_json;
 
@@ -293,7 +297,7 @@ std::string Labs_Core::Cloudflare::Generate_Remove_Ingress_Config(Container cont
 
 	ingress_conf.erase(
 		std::remove_if(ingress_conf.begin(), ingress_conf.end(), [&](const json& obj) {
-			return obj.contains("hostname") && obj["hostname"] == hostname;
+			return obj.contains("hostname") && obj["hostname"] == auth.DOMN && obj.contains("path") && obj["path"] == path;
 			}),
 		ingress_conf.end()
 	);
@@ -330,8 +334,9 @@ std::string Labs_Core::Cloudflare::Generate_Add_DNS_Config(Container container)
 }
 
 std::string Labs_Core::Cloudflare::Generate_Add_Application_Config(Container container, std::string name) {
+	std::string path = "/container/" + container.Get_ID() + "/terminal";
 	json message_body = "{\"type\":\"ssh\", \"session_duration\":\"12h\",\"auto_redirect_to_identity\":true,\"allow_iframe\":true}"_json;
-	message_body["domain"] = container.Get_Name_Cache() + "-" + auth.DOMN;
+	message_body["domain"] = auth.DOMN + path;
 	message_body["name"] = name;
 	return message_body.dump();
 }

@@ -17,6 +17,7 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET DockerLabsCore PROPERTY CXX_STANDARD 20)
 endif()
 
+
 find_package(CURL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 

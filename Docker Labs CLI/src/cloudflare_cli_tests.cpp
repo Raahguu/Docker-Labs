@@ -6,22 +6,9 @@
 using namespace Docker_Labs;
 
 int Labs_CLI::Cloudflare::Test_API(Labs_Core::Cloudflare::API_Auth cf_auth) {
-    int responce_code = Labs_Core::Cloudflare::Test_API(cf_auth);
-    switch (responce_code)
-    {
-    case 0:
-        std::cout << "Pass" << std::endl;
-        return 0;
-    case 2:
-        std::cout << "Authorization Failure" << std::endl;
-        return 1;
-    case 3:
-        std::cout << "Connection Failure" << std::endl;
-        return 1;
-    default:
-        std::cout << "Unknown Failure" << std::endl;
-        return 1;
-    }
+    std::string responce = Labs_Core::Cloudflare::Test_API(cf_auth);
+    std::cout << responce << std::endl;
+    return 0;
 }
 
 int Labs_CLI::Cloudflare::Test_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth)

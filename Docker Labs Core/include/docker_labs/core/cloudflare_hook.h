@@ -12,7 +12,6 @@ namespace Docker_Labs::Labs_Core {
 		class API_Auth {
 			friend class Cloudflare;
 		public:
-			API_Auth();
 			API_Auth(std::string account_id, std::string zone_id, std::string tunnel_id, std::string API_token, std::string domain);
 			std::string Generate_Connection_String();
 			static API_Auth From_Connection_String(const std::string& connection_string);
@@ -24,14 +23,14 @@ namespace Docker_Labs::Labs_Core {
 			const std::string DOMN;
 		};
 
-		static int Test_API(const Cloudflare::API_Auth& auth);
+		static std::string Test_API(const Cloudflare::API_Auth& auth);
 
 		static json Fetch_Ingress(const Cloudflare::API_Auth& auth);
 		static json Fetch_DNS_Records(const Cloudflare::API_Auth& auth);
 
 		Cloudflare(const API_Auth& auth);
 		Cloudflare(const API_Auth& auth, bool must_cout);
-		int Test_API();
+		std::string Test_API();
 		std::vector<std::tuple<int, std::string>> Get_Return_Info(json responce);
 
 		// Seats
@@ -63,7 +62,6 @@ namespace Docker_Labs::Labs_Core {
 
 		int Grant_Container(Container container, User user);
 		int Revoke_Container(Container container, User user);
-		int Deactivate_Seat(User user);
 		int Deactivate_Seat(User_Seat user);
 		//int* Get_Members(Container container);
 		//int* Get_Authorised_Containers(User user);
