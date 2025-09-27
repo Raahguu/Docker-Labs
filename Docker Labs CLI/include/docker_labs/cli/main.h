@@ -1,12 +1,4 @@
-﻿/**
- * main.h
- * Main entry point declarations for the Docker Labs CLI.
- *
- * Declares the main command interpreter class and core initialization
- * for the CLI application.
- */
-
-#pragma once
+﻿#pragma once
 #include <string>
 #include <vector>
 #include <map>
@@ -15,27 +7,54 @@
 
 namespace Docker_Labs::Labs_CLI {
 
+	/// <summary>
+	/// Main command interpreter for the Docker Labs CLI.
+	/// </summary>
+	/// <remarks>
+	/// Parses CLI arguments and provides access to partition, command, and subcommand.
+	/// </remarks>
 	class Command_Interpreter {
 	public:
-		// Constructor that parses the CLI arguments.
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Command_Interpreter"/> class and parses the CLI arguments.
+		/// </summary>
+		/// <param name="argc">Argument count.</param>
+		/// <param name="argv">Argument values.</param>
 		Command_Interpreter(int argc, char* argv[]);
 
-		// Returns the top-level partition (e.g., "docker", "cloudflare").
+		/// <summary>
+		/// Gets the top-level partition (e.g., "docker", "cloudflare").
+		/// </summary>
+		/// <returns>The partition string.</returns>
 		std::string Get_Partition();
 
-		// Returns the main command (e.g., "start", "init", "remove").
+		/// <summary>
+		/// Gets the main command (e.g., "start", "init", "remove").
+		/// </summary>
+		/// <returns>The command string.</returns>
 		std::string Get_Command();
 
-		// Returns the subcommand, if any (e.g., "all", "policy", etc.).
+		/// <summary>
+		/// Gets the subcommand, if any (e.g., "all", "policy", etc.).
+		/// </summary>
+		/// <returns>The subcommand string.</returns>
 		std::string Get_SubCommand();
 
 	private:
-		std::string partition; // e.g., "docker", "cloudflare"
-		std::string command; // e.g., "start", "add"
-		std::string subcommand; // optional secondary command
+		/// <summary>
+		/// The top-level partition (e.g., "docker", "cloudflare").
+		/// </summary>
+		std::string partition;
+
+		/// <summary>
+		/// The main command (e.g., "start", "add").
+		/// </summary>
+		std::string command;
+
+		/// <summary>
+		/// The optional secondary command.
+		/// </summary>
+		std::string subcommand;
 	};
 
 }
-
-
-// TODO: Reference additional headers your program requires here.

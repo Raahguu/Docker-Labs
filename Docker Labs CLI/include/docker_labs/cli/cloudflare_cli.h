@@ -1,72 +1,182 @@
-/**
- * cloudflare_cli.h
- * Declarations for handling Cloudflare CLI commands.
- *
- * Contains function prototypes and classes related to Cloudflare
- * API authentication and command handling within the CLI.
- */
-
-
 #pragma once
 #include "main.h"
 #include "docker_labs/core/cloudflare_hook.h"
 #include "docker_labs/core/labs_container.h"
-
+/// <summary>
+/// test
+/// </summary>
 namespace Docker_Labs::Labs_CLI::Cloudflare {
-	// === AUTHENTICATION ===
-	// Retrieves Cloudflare API authentication credentials (standard and legacy).
+
+	/// <summary>
+	/// Retrieves Cloudflare API authentication with a connection string piped into stdin.
+	/// </summary>
+	/// <returns>Cloudflare API credential object.</returns>
 	Labs_Core::Cloudflare::API_Auth Get_Auth();
+
+	/// <summary>
+	/// Retrieves Cloudflare API authentication credentials with a credential file piped int stdin.
+	/// </summary>
+	/// <returns>Cloudflare API credential object.</returns>
 	Labs_Core::Cloudflare::API_Auth Get_Auth_Legacy();
 
-	// === COMMAND HANDLING ===
-	// Entry point for interpreting CLI commands related to Cloudflare.
+	/// <summary>
+	/// Entry point for interpreting CLI commands related to Cloudflare.
+	/// </summary>
+	/// <param name="command">The command interpreter instance.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Command_Handler(Labs_CLI::Command_Interpreter command, int argc, char* argv[]);
 
-	// === FETCH / READ OPERATIONS ===
-	// Retrieves data from Cloudflare API.
-	// ===============================
-	// Fetches user seat info.
+	/// <summary>
+	/// Fetches user seat info from the Cloudflare API.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <returns>Status code.</returns>
 	int Fetch_Seats(Labs_Core::Cloudflare::API_Auth cf_auth);
-	// Fetches existing ingress rules.
+
+	/// <summary>
+	/// Fetches existing ingress rules from the Cloudflare API.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <returns>Status code.</returns>
 	int Fetch_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth);
-	// Fetches DNS records.
+
+	/// <summary>
+	/// Fetches DNS records from the Cloudflare API.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <returns>Status code.</returns>
 	int Fetch_DNS_Records(Labs_Core::Cloudflare::API_Auth cf_auth);
 
-	// === CLI OBJECT PARSERS ===
-	// Parses CLI arguments into internal data structures.
-	// ==========================
-	// Parses a container.
+	/// <summary>
+	/// Parses CLI arguments into a container data structure.
+	/// </summary>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Parsed container object.</returns>
 	Labs_Core::Container Spec_Container(int argc, char* argv[]);
-	// Parses one or more users.
+
+	/// <summary>
+	/// Parses CLI arguments into one or more user data structures.
+	/// </summary>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Vector of parsed user objects.</returns>
 	std::vector<Labs_Core::User> Spec_User(int argc, char* argv[]);
-	// Parses seat with information using Cloudflare.
+
+	/// <summary>
+	/// Parses seat information using Cloudflare authentication and CLI arguments.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Vector of parsed user seat objects.</returns>
 	std::vector<Labs_Core::User_Seat> Spec_Seat(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
-	// Parses a container and user pair.
+
+	/// <summary>
+	/// Parses CLI arguments into a container and user pair.
+	/// </summary>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Tuple containing a container and a user object.</returns>
 	std::tuple<Labs_Core::Container, Labs_Core::User> Spec_Container_User(int argc, char* argv[]);
 
-	// === INGRESS MANAGEMENT ===
-	// Functions to create, update, and remove ingress configurations.
+	/// <summary>
+	/// Creates a new ingress configuration in Cloudflare.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Create_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
+
+	/// <summary>
+	/// Updates an existing ingress configuration in Cloudflare.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Update_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
+
+	/// <summary>
+	/// Removes an ingress configuration from Cloudflare.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Remove_Ingress(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
 
-	// === DNS MANAGEMENT ===
-	// Functions to create and remove DNS records.
+	/// <summary>
+	/// Creates a new DNS record in Cloudflare.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Create_DNS(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
+
+	/// <summary>
+	/// Removes a DNS record from Cloudflare.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Remove_DNS(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
 
-	// === APPLICATION MANAGEMENT ===
-	// Functions to create and remove Cloudflare applications.
+	/// <summary>
+	/// Creates a new Cloudflare application.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Create_Application(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
+
+	/// <summary>
+	/// Removes a Cloudflare application.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Remove_Application(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
 
-	// === PERMISSION MANAGEMENT ===
-	// Grant or revoke container access, or deactivate user seats.
+	/// <summary>
+	/// Grants container access in Cloudflare.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Grant_Container(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
+
+	/// <summary>
+	/// Revokes container access in Cloudflare.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Revoke_Container(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
+
+	/// <summary>
+	/// Deactivates user seats in Cloudflare.
+	/// </summary>
+	/// <param name="cf_auth">Cloudflare API credential object.</param>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Deactivate_Seats(Labs_Core::Cloudflare::API_Auth cf_auth, int argc, char* argv[]);
 
-	// === MISCELLANEOUS ===
-	// Displays help or usage information.
+	/// <summary>
+	/// Displays help or usage information for Cloudflare CLI commands.
+	/// </summary>
+	/// <param name="argc">Argument count.</param>
+	/// <param name="argv">Argument values.</param>
+	/// <returns>Status code.</returns>
 	int Help_Message(int argc, char* argv[]);
 }

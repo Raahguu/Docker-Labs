@@ -1,18 +1,3 @@
-// -----------------------------------------------------------------------------
-// @file labs_network.h
-// @brief Declares the Network class for representing and managing Docker networks.
-//
-// The Network class represents a Docker network by its ID and provides access
-// to cached properties such as name, subnet, gateway, and associated containers.
-// This class is used to interface with Docker-managed networks and cache their state.
-//
-// Dependencies:
-// - Forward declaration of Container (to avoid circular dependency)
-//
-// Namespace:
-// - Docker_Labs::Labs_Core
-// -----------------------------------------------------------------------------
-
 #pragma once
 #include <string>
 #include <vector>
@@ -26,29 +11,68 @@ namespace Docker_Labs::Labs_Core {
 		// ----------------------
 		// Constructor
 		// ----------------------
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Network"/> class with the specified network ID.
+		/// </summary>
+		/// <param name="id">The Docker network ID.</param>
 		explicit Network(std::string id);
 
 		// ----------------------
 		// Core Accessor
 		// ----------------------
+
+		/// <summary>
+		/// Gets the network ID.
+		/// </summary>
+		/// <returns>The network ID string.</returns>
 		std::string Get_ID();
 
 		// ----------------------
 		// Cached Metadata Accessors
 		// ----------------------
+
+		/// <summary>
+		/// Gets the cached network name.
+		/// </summary>
+		/// <returns>The network name string.</returns>
 		std::string Get_Name_Cache();
+
+		/// <summary>
+		/// Gets the cached subnet.
+		/// </summary>
+		/// <returns>The subnet string.</returns>
 		std::string Get_Subnet_Cache();
+
+		/// <summary>
+		/// Gets the cached gateway.
+		/// </summary>
+		/// <returns>The gateway string.</returns>
 		std::string Get_Gateway_Cache();
+
+		/// <summary>
+		/// Gets the cached IP range.
+		/// </summary>
+		/// <returns>The IP range string.</returns>
 		std::string Get_IP_Range_Cache();
+
+		/// <summary>
+		/// Gets the cached list of containers associated with the network.
+		/// </summary>
+		/// <returns>Vector of container objects.</returns>
 		std::vector<Labs_Core::Container> Get_Containers_Cache();
 
-		// Refresh cached metadata from Docker
+		/// <summary>
+		/// Refreshes the cached metadata for the network from Docker.
+		/// </summary>
+		/// <returns>Status code.</returns>
 		int Cache_Update();
 
 	private:
 		// ----------------------
 		// Internal State
 		// ----------------------
+
 		std::string id;
 		std::string name_cache;
 		std::string subnet_cache;
@@ -57,4 +81,4 @@ namespace Docker_Labs::Labs_Core {
 		std::vector<Labs_Core::Container> containers_cache;
 	};
 
-} // namespace Docker_Labs::Labs_Core
+}
