@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Add dependencies if needed
+# find_dependency(SomeDependency)
+
+include("${CMAKE_CURRENT_LIST_DIR}/DockerLabsTargets.cmake")

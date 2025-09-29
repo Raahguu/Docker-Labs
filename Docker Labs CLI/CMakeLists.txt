@@ -19,18 +19,23 @@ set(DockerLabsCoreIncludes "${CMAKE_SOURCE_DIR}/Docker Labs Core/include")
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB INCLUDES "include/*")
 
-add_executable (labs-cli ${SOURCES} ${INCLUDES})
+add_executable (DockerLabsCLI ${SOURCES} ${INCLUDES})
+set_target_properties(DockerLabsCLI PROPERTIES OUTPUT_NAME "labs-cli")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET labs-cli PROPERTY CXX_STANDARD 20)
+  set_property(TARGET DockerLabsCLI PROPERTY CXX_STANDARD 20)
 endif()
 
-target_include_directories(labs-cli PRIVATE "include")
-target_include_directories(labs-cli PRIVATE ${DockerLabsCoreIncludes})
+target_include_directories(DockerLabsCLI PRIVATE "include")
+target_include_directories(DockerLabsCLI PRIVATE ${DockerLabsCoreIncludes})
 
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED program_options)
 
-target_link_libraries(labs-cli PRIVATE Boost::program_options)
+target_link_libraries(DockerLabsCLI PRIVATE Boost::program_options)
 
-target_link_libraries(labs-cli PRIVATE ${DockerLabsCore})
+target_link_libraries(DockerLabsCLI PRIVATE ${DockerLabsCore})
+
+install(TARGETS DockerLabsCLI 
+	RUNTIME DESTINATION bin
+)

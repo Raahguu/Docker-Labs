@@ -45,6 +45,13 @@ namespace Docker_Labs::Labs_Core {
 			/// <returns>Cloudflare API credential object.</returns>
 			static API_Auth From_Connection_String(const std::string& connection_string);
 
+			/// <summary>
+			/// Creates an <see cref="API_Auth"/> instance from a connection string.
+			/// </summary>
+			/// <param name="connection_string">The connection string.</param>
+			/// <returns>Cloudflare API credential object.</returns>
+			static API_Auth From_Env();
+
 		private:
 			/// <summary>Cloudflare account ID.</summary>
 			const std::string ACC;

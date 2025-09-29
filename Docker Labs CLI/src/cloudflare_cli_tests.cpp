@@ -129,8 +129,8 @@ int Labs_CLI::Cloudflare::Test_Grant_Policy(Labs_Core::Cloudflare::API_Auth cf_a
 	Labs_Core::Container container = Labs_Core::Container::Bogus("bogus", "bogus_email_email_org_b0g", "image", "127.0.0.1");
 
 	// Define users to add and remove access for
-	Labs_Core::User add = Labs_Core::User("joshua.finlayson@cassa.au");
-	Labs_Core::User remove = Labs_Core::User("laith.striegher@cassa.au");
+	Labs_Core::User add = Labs_Core::User("bogus.other@email.org");
+	Labs_Core::User remove = Labs_Core::User("bogus.email@email.org");
 
 	// Create the necessary Cloudflare resources
 	cloudflare.Create_Ingress(container);

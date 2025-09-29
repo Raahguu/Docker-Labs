@@ -27,10 +27,31 @@ namespace po = boost::program_options;
 	// Reads a connection string from stdin and parses it using Cloudflare's API_Auth factory.
 Labs_Core::Cloudflare::API_Auth Labs_CLI::Cloudflare::Get_Auth() {
 	std::string conn_str;
-	std::getline(std::cin, conn_str);  // Use getline to support spaces
 
-	auto cf_auth = Labs_Core::Cloudflare::API_Auth::From_Connection_String(conn_str);
-	return cf_auth;
+	try {
+		// First, try to get the connection string from the environment
+		return Labs_Core::Cloudflare::API_Auth::From_Env();
+	}
+	catch (const std::runtime_error&) {
+		std::cout << "Failed to retrieve connection string from environment." << std::endl;
+	}
+
+	
+
+	try {
+		// If that fails, read it from piped stdin// If that fails, read from standard input
+		std::getline(std::cin, conn_str);  // Use getline to support spaces
+
+		if (conn_str.empty()) {
+			throw std::runtime_error("Connection string is empty.");
+		}
+		auto cf_auth = Labs_Core::Cloudflare::API_Auth::From_Connection_String(conn_str);
+		return cf_auth;
+	}
+	catch (const std::exception& e) {
+		std::cout << "Error reading connection string: " << e.what() << std::endl;
+		std::exit(1);
+	}
 }
 
 
@@ -212,17 +233,11 @@ int Labs_CLI::Cloudflare::Fetch_DNS_Records(Labs_Core::Cloudflare::API_Auth cf_a
 	}
 
 	json records = response_body.value("result", json::array());
-
-	for (const auto& record : records) {
+	std::cout << "Total Records: " << records.size() << "\n\n";
+	for (json record : records) {
 		// Parse comment to extract container and owner info
-		std::string comment = record.value("comment", "");
-		std::size_t pos = comment.find('>');
-		std::string container = (pos != std::string::npos) ? comment.substr(0, pos) : "";
-		std::string owner = (pos != std::string::npos) ? comment.substr(pos + 1) : "";
-
+		std::cout << "Record ID: " << record.value("id", "<none>") << '\n';
 		std::cout << "Name: " << record.value("name", "<none>") << '\n';
-		std::cout << "Container: " << container << '\n';
-		std::cout << "Owner: " << owner << '\n';
 		std::cout << "Proxy: " << record.value("content", "<none>") << "\n\n";
 	}
 

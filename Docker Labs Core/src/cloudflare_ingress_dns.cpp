@@ -152,7 +152,7 @@ std::string Labs_Core::Cloudflare::Generate_Remove_Ingress_Config(Container cont
 
     // Remove ingress rules matching the container's hostname
     ingress_conf.erase(
-        std::remove_if(ingress_conf.begin(), ingress_conf.end(), [&](const json& obj) {
+        std::remove_if(ingress_conf.begin(), ingress_conf.end(), [&](json& obj) {
             return obj.contains("hostname") && obj["hostname"] == hostname;
             // For path-based: && obj.contains("path") && obj["path"] == path;
             }),

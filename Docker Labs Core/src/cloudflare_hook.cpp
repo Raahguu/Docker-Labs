@@ -13,6 +13,8 @@
 #include <iostream>
 #include <filesystem> // Used to read UUID from system
 #include <algorithm>  // for std::remove_if
+#include <string>
+#include <cstdlib> // For getenv()
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
@@ -127,6 +129,18 @@ Labs_Core::Cloudflare::API_Auth Labs_Core::Cloudflare::API_Auth::From_Connection
 	std::string DOMN = plaintext.substr(140);
 
 	return API_Auth(ACC, ZONE, TUNN, TKN, DOMN);
+}
+
+Labs_Core::Cloudflare::API_Auth Labs_Core::Cloudflare::API_Auth::From_Env() {
+	const char* env_var_name = "DOCKER_LABS_CONN_STR";
+
+	const char* env_var_value_cstr = std::getenv(env_var_name);
+
+	if (env_var_value_cstr == nullptr) {
+		throw std::runtime_error("Environment variable " + std::string(env_var_name) + " not set");
+	}
+	std::string connection_string(env_var_value_cstr);
+	return From_Connection_String(connection_string);
 }
 
 // -----------------------------------------------------------------------------

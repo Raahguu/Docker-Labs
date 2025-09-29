@@ -22,3 +22,9 @@ find_package(nlohmann_json REQUIRED)
 
 target_link_libraries(DockerLabsCore PRIVATE CURL::libcurl)
 target_link_libraries(DockerLabsCore PRIVATE nlohmann_json::nlohmann_json)
+
+install(TARGETS DockerLabsCore
+    EXPORT DockerLabsCoreTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib/static
+)

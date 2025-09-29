@@ -44,7 +44,7 @@ json Labs_Core::Cloudflare::Fetch_Application(Labs_Core::Container container) {
 // Generates the JSON payload to create a new Cloudflare Access application.
 // The application type is SSH with specific session duration and redirect behavior.
 std::string Labs_Core::Cloudflare::Generate_Add_Application_Config(Container container, std::string name) {
-	json message_body = "{\"type\":\"ssh\", \"session_duration\":\"12h\",\"auto_redirect_to_identity\":true,\"allow_iframe\":true}"_json;
+	json message_body = "{\"type\":\"ssh\", \"session_duration\":\"12h\",\"auto_redirect_to_identity\":false,\"allow_iframe\":true}"_json;
 	message_body["domain"] = container.Get_Name_Cache() + "-" + auth.DOMN;
 	message_body["name"] = name;
 	return message_body.dump();
@@ -66,13 +66,19 @@ int Labs_Core::Cloudflare::Create_Application(Container container, std::string n
 
 	std::string data = Generate_Add_Application_Config(container, name);
 	std::string responce = std::get<std::string>(curl.Post(url, data, headers));
-
 	// Parse the response (not used here but could be for error checking)
 	json parsed_responce = json::parse(responce);
-	if (must_cout) {
-		std::cout << "Created application for '" + container.Get_Name_Cache() + "'" << std::endl;
+	if (parsed_responce["success"]) {
+		if (must_cout) std::cout << "Application created successfully." << std::endl;
+		return 0;
 	}
-	return 0;
+	else {
+		std::cout << "Failed to create application. Errors:" << std::endl;
+		for (const auto& error : parsed_responce["errors"]) {
+			std::cout << "Code: " << error["code"] << ", Message: " << error["message"] << std::endl;
+		}
+		return parsed_responce["errors"][0]["code"];
+	}
 }
 
 // Removes the Cloudflare Access application associated with the container.
@@ -156,7 +162,7 @@ std::string Labs_Core::Cloudflare::Generate_Revoke_Policy_Config(Labs_Core::Cont
 
 	// Remove the user with matching email from the allowed list
 	granted.erase(
-		std::remove_if(granted.begin(), granted.end(), [&](const json& obj) {
+		std::remove_if(granted.begin(), granted.end(), [&](json& obj) {
 			return obj["email"].contains("email") && obj["email"]["email"] == user.Get_Email();
 			}),
 		granted.end()
