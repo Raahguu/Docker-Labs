@@ -4,7 +4,7 @@
 
 
 cmake_minimum_required (VERSION 3.11)
-project ("Docker Labs" VERSION 1.0)
+project ("Docker Labs" VERSION 0.1)
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
