@@ -43,7 +43,11 @@ Labs_Core::Container Labs_Core::Docker::Get_Container(std::string container_name
 }
 
 Labs_Core::Container Labs_Core::Docker::Create_Container(std::string container_name, std::string image_name) {
-	Labs_Core::Network network = Create_Network("network" + container_name);
+	return Create_Container(container_name, image_name, false);
+}
+
+Labs_Core::Container Labs_Core::Docker::Create_Container(std::string container_name, std::string image_name, bool internal_net) {
+	Labs_Core::Network network = Create_Network("net_" + container_name, internal_net);
 
 	std::string url = "/containers/create?name=" + container_name;
 
@@ -393,7 +397,7 @@ int Labs_Core::Docker::Remove(Labs_Core::Container container, bool remove_networ
 
 	std::cout << "Container successfully removed" << std::endl;
 
-	if (remove_network) { Delete_Network(Get_Network("network" + name));}
+	if (remove_network) { Delete_Network(Get_Network("net_" + name));}
 
 	return 204;
 }

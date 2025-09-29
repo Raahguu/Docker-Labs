@@ -68,6 +68,7 @@ int Labs_CLI::Bulk_Instantiate_Handler(int argc, char* argv[]) {
     Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
     Labs_Core::Cloudflare cloudflare(cf_auth, false);
     Labs_Core::Docker docker;
+	bool internal_net = false;
 
     // Random generator for container name suffix
     std::random_device rd;
@@ -84,7 +85,8 @@ int Labs_CLI::Bulk_Instantiate_Handler(int argc, char* argv[]) {
     desc.add_options()
         ("help,h", "Show help message")
         ("file,u", po::value<std::string>(&filename)->required(), "File containing an email on each line")
-        ("image,i", po::value<std::string>(&image)->required(), "Docker image for container creation");
+        ("image,i", po::value<std::string>(&image)->required(), "Docker image for container creation")
+        ("internal", "Make the container's network internal (no internet)");
 
     po::variables_map vm;
     try {
@@ -101,6 +103,10 @@ int Labs_CLI::Bulk_Instantiate_Handler(int argc, char* argv[]) {
         std::cout << "Bulk instantiate containers and setup Cloudflare rules." << std::endl;
         std::cout << desc << std::endl;
         return 0;
+    }
+
+    if (vm.count("internal")) {
+        internal_net = true;
     }
 
     // Allowed characters for random suffix generation
@@ -146,7 +152,7 @@ int Labs_CLI::Bulk_Instantiate_Handler(int argc, char* argv[]) {
         }
 
         // Create container and activate Cloudflare rules for the user
-        Labs_Core::Container container = docker.Create_Container(container_name, image);
+        Labs_Core::Container container = docker.Create_Container(container_name, image, internal_net);
         cloudflare.Activate_Container(container, Labs_Core::User(email));
     }
 
@@ -162,6 +168,7 @@ int Labs_CLI::Init_Container_Handler(int argc, char* argv[]) {
     Labs_Core::Cloudflare::API_Auth cf_auth = Labs_CLI::Cloudflare::Get_Auth();
     Labs_Core::Cloudflare cloudflare(cf_auth, false);
     Labs_Core::Docker docker;
+	bool internal_net = false;
 
     // Random generator for container name suffix
     std::random_device rd;
@@ -179,7 +186,8 @@ int Labs_CLI::Init_Container_Handler(int argc, char* argv[]) {
         ("help,h", "Show help message")
         ("user,u", po::value<std::string>(&email)->required(), "Email allowed access to the container")
         ("image,i", po::value<std::string>(&image)->required(), "Docker image for container creation")
-        ("name,n", po::value<std::string>(&container_name), "Custom container name (optional)");
+        ("name,n", po::value<std::string>(&container_name), "Custom container name (optional)")
+        ("internal", "Make the container's network internal (no internet)");
 
     po::variables_map vm;
     try {
@@ -196,6 +204,10 @@ int Labs_CLI::Init_Container_Handler(int argc, char* argv[]) {
         std::cout << "Create a container and setup Cloudflare rules." << std::endl;
         std::cout << desc << std::endl;
         return 0;
+    }
+
+    if (vm.count("internal")) {
+        internal_net = true;
     }
 
     // Allowed characters for random suffix
@@ -228,7 +240,7 @@ int Labs_CLI::Init_Container_Handler(int argc, char* argv[]) {
     }
 
     // Create container and activate Cloudflare for the specified user
-    Labs_Core::Container container = docker.Create_Container(container_name, image);
+    Labs_Core::Container container = docker.Create_Container(container_name, image, internal_net);
     cloudflare.Activate_Container(container, Labs_Core::User(email));
     return 0;
 }

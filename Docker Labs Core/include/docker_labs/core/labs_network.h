@@ -13,7 +13,9 @@ namespace Docker_Labs::Labs_Core {
 		// ----------------------
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Network"/> class with the specified network ID.
+		/// Initializes a new instance of the <see cref=
+		/// 
+		/// /> class with the specified network ID.
 		/// </summary>
 		/// <param name="id">The Docker network ID.</param>
 		explicit Network(std::string id);

@@ -23,10 +23,15 @@ std::vector<Labs_Core::Network> Labs_Core::Docker::Get_All_Networks() {
 	return networks;
 }
 
-Labs_Core::Network Labs_Core::Docker::Create_Network(std::string network_name){
+Labs_Core::Network Labs_Core::Docker::Create_Network(std::string network_name) {
+	return Create_Network(network_name, false);
+}
+
+Labs_Core::Network Labs_Core::Docker::Create_Network(std::string network_name, bool internal_net){
 	std::string url = "/networks/create";
-	json response = CallDockerAPI(url, R"({"Name": ")" + network_name 
-				+ R"(", "Labels": {
+	json response = CallDockerAPI(url, R"({"Name": ")" + network_name + R"(",)" 
+		+ (internal_net ? R"("Internal": true, )" : "")
+			+ R"("Labels": {
 					"Docker-Labs": "true"
 				}})", "POST");
 
@@ -38,13 +43,14 @@ Labs_Core::Network Labs_Core::Docker::Create_Network(std::string network_name){
 	return Network(response["body"]["Id"]);
 }
 
-Labs_Core::Network Labs_Core::Docker::Create_Network(std::string network_name, std::string subnet, std::string gateway, std::string IP_Range) {
+Labs_Core::Network Labs_Core::Docker::Create_Network(std::string network_name, std::string subnet, std::string gateway, std::string IP_Range, bool internal_net) {
 	std::string url = "/networks/create";
 	json response = CallDockerAPI(url, R"({"Name": ")" + network_name
 		       	+ R"(", "IPAM": {"Config": [{"Subnet": ")" + subnet 
 			+ R"(", "IPRange": ")" + IP_Range 
-			+ R"(", "Gateway": ")" + gateway + R"(}], 
-				"Labels": {
+			+ R"(", "Gateway": ")" + gateway + R"("}],)" 
+		+ (internal_net ? R"("Internal": true,)" : "")
+			+ R"("Labels": {
 					"Docker-Labs": "true"
 				}} )", "POST");
 

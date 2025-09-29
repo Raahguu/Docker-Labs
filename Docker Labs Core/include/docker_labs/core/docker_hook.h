@@ -39,6 +39,15 @@ namespace Docker_Labs::Labs_Core {
 		Labs_Core::Container Create_Container(std::string container_name, std::string image_name);
 
 		/// <summary>
+		/// Creates a new container with the specified name and image.
+		/// </summary>
+		/// <param name="container_name">The name of the container.</param>
+		/// <param name="image_name">The Docker image name.</param>
+		/// <param name="internal_net">Whether to use an internal network.</param>
+		/// <returns>The created container object.</returns>
+		Labs_Core::Container Create_Container(std::string container_name, std::string image_name, bool internal_net);
+
+		/// <summary>
 		/// Resets a container to its initial state.
 		/// </summary>
 		/// <param name="container">The container object.</param>
@@ -162,6 +171,14 @@ namespace Docker_Labs::Labs_Core {
 		Labs_Core::Network Create_Network(std::string network_name);
 
 		/// <summary>
+		/// Creates a new Docker network with the specified name.
+		/// </summary>
+		/// <param name="network_name">The network name.</param>
+		/// <param name="internal_net">Whether to use an internal network.</param>
+		/// <returns>The created network object.</returns>
+		Labs_Core::Network Create_Network(std::string network_name, bool internal_net);
+
+		/// <summary>
 		/// Creates a new Docker network with custom subnet, gateway, and IP range.
 		/// </summary>
 		/// <param name="network_name">The network name.</param>
@@ -172,9 +189,21 @@ namespace Docker_Labs::Labs_Core {
 		Labs_Core::Network Create_Network(std::string network_name, std::string subnet, std::string gateway, std::string IP_Range);
 
 		/// <summary>
+		/// Creates a new Docker network with custom subnet, gateway, and IP range.
+		/// </summary>
+		/// <param name="network_name">The network name.</param>
+		/// <param name="subnet">The subnet.</param>
+		/// <param name="gateway">The gateway.</param>
+		/// <param name="IP_Range">The IP range.</param>
+		/// <param name="internal_net">Whether to use an internal network.</param>
+		/// <returns>The created network object.</returns>
+		Labs_Core::Network Create_Network(std::string network_name, std::string subnet, std::string gateway, std::string IP_Range, bool internal_net);
+
+		/// <summary>
 		/// Deletes a Docker network.
 		/// </summary>
-		/// <param name="network">The network object.</param>
+		/// <param name=
+		/// >The network object.</param>
 		/// <returns>Status code.</returns>
 		int Delete_Network(Labs_Core::Network network);
 
