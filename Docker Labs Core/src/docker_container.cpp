@@ -53,6 +53,7 @@ Labs_Core::Container Labs_Core::Docker::Create_Container(std::string container_n
 
 	std::string request_data = R"({
 			"Image": ")" + image_name + R"(",
+			"Hostname": ")" + container_name + R"(",
 			"Labels": {
 				"Docker_Labs": "true"
 			},
