@@ -15,10 +15,7 @@
 #include <algorithm>  // for std::remove_if
 #include <string>
 #include <cstdlib> // For getenv()
-#include <boost/archive/iterators/binary_from_base64.hpp>
-#include <boost/archive/iterators/base64_from_binary.hpp>
-#include <boost/archive/iterators/transform_width.hpp>
-#include <boost/algorithm/string.hpp>
+#include <sstream> // For the spliting using the stringstream
 
 #include "docker_labs/core/cloudflare_hook.h"
 #include "docker_labs/core/docker_hook.h"
@@ -41,92 +38,30 @@ Labs_Core::Cloudflare::API_Auth::API_Auth(std::string account_id, std::string zo
 // Utility Functions
 // -----------------------------------------------------------------------------
 
-// Returns the lexicographically first UUID string from /dev/disk/by-uuid
-// Used as a key for XOR obfuscation
-std::string getFirstUUID() {
-	std::string first;
-	bool found = false;
-	for (const auto& entry : std::filesystem::directory_iterator("/dev/disk/by-uuid")) {
-		std::string name = entry.path().filename().string();
-		if (!found || name < first) {
-			first = name;
-			found = true;
-		}
-	}
-	return found ? first : "";
-}
-
-// Applies XOR cipher to input string using the provided key
-// Used to obfuscate and de-obfuscate the API credentials string
-std::string xorCipher(const std::string& input, const std::string& key) {
-	std::string output = input;
-	for (size_t i = 0; i < input.size(); ++i) {
-		output[i] = input[i] ^ key[i % key.size()];
-	}
-	return output;
-}
-
-// -----------------------------------------------------------------------------
-// API_Auth: Connection String Encoding/Decoding
-// -----------------------------------------------------------------------------
-
-// Generates a Base64-encoded and XOR-obfuscated connection string 
-// that contains concatenated API credentials.
-// Uses system UUID as the XOR key.
 std::string Labs_Core::Cloudflare::API_Auth::Generate_Connection_String() {
-	using It = boost::archive::iterators::base64_from_binary<
-		boost::archive::iterators::transform_width<std::string::const_iterator, 6, 8>
-	>;
+    std::string connection_string = ACC + "," + ZONE + "," + TUNN + "," + TKN + "," + DOMN;
 
-	std::string UUID = getFirstUUID();
-	if (UUID.empty()) {
-		throw std::runtime_error("NO UUID found for connection string generation");
-	}
-
-	// Concatenate all credential fields into a single plaintext string
-	std::string plaintext = ACC + ZONE + TUNN + TKN + DOMN;
-
-	// XOR obfuscate using UUID as key
-	std::string ciphertext = xorCipher(plaintext, UUID);
-
-	// Base64 encode the obfuscated string
-	auto tmp = std::string(It(std::begin(ciphertext)), It(std::end(ciphertext)));
-
-	// Add necessary padding characters to make valid Base64
-	return tmp.append((3 - ciphertext.size() % 3) % 3, '=');
+    return connection_string;
 }
 
-// Decodes and de-obfuscates a Base64 connection string into an API_Auth object.
-// Assumes XOR key is the system UUID.
+// Gets all the cloudflare environment variable values an API_Auth object.
 Labs_Core::Cloudflare::API_Auth Labs_Core::Cloudflare::API_Auth::From_Connection_String(const std::string& connection_string) {
-	using It = boost::archive::iterators::transform_width<
-		boost::archive::iterators::binary_from_base64<std::string::const_iterator>, 8, 6
-	>;
+    // split the argument into 5 parts based off the commas
+    std::stringstream ss(&connection_string);
 
-	std::string UUID = getFirstUUID();
-	if (UUID.empty()) {
-		throw std::runtime_error("NO UUID found for connection string decoding");
-	}
+    std::string parts[5];
 
-	// Decode the Base64 connection string
-	std::string ciphertext = boost::algorithm::trim_right_copy_if(std::string(It(std::begin(connection_string)), It(std::end(connection_string))), [](char c) {
-		return c == '\0';
-		});
-
-	// XOR de-obfuscate to retrieve plaintext credentials
-	std::string plaintext = xorCipher(ciphertext, UUID);
-
-	// Validate minimum length (sum of all field lengths)
-	if (plaintext.size() < 140) { // 32 + 32 + 36 + 40 = 140 (DOMN length may vary)
-		throw std::runtime_error("Invalid connection string format");
-	}
-
+    for (int8_t i = 0; i < 5; i++)
+    {
+        std::getline(ss, parts[i], ",");
+    }
+    
 	// Extract each credential by substring offsets
-	std::string ACC = plaintext.substr(0, 32);
-	std::string ZONE = plaintext.substr(32, 32);
-	std::string TUNN = plaintext.substr(64, 36);
-	std::string TKN = plaintext.substr(100, 40);
-	std::string DOMN = plaintext.substr(140);
+	std::string ACC = parts[0];
+	std::string ZONE = parts[1];
+	std::string TUNN = parts[2];
+	std::string TKN = parts[3];
+	std::string DOMN = parts[4];
 
 	return API_Auth(ACC, ZONE, TUNN, TKN, DOMN);
 }
