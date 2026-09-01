@@ -66,10 +66,10 @@ $ labs-cli nuke
 Check to see if CASSA's IP has changed (`$ curl ipinfo.io`), if it has:
 1. Change the cloudflare permissions on the token
 2. Reroll the token
-3. Change line 1 of `auth.txt`
+3. Change line 4 of `auth.txt`
 4. Run:
 ```bash
-$ cat auth.txt > labs-cli cloudflare create_conn_str
+$ cat auth.txt | labs-cli cloudflare create_conn_str
 ```
 
 This will print out a string of comma seperated values, save this value as `DOCKER_LABS_CONN_STR` in the environment/path
